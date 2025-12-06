@@ -1,0 +1,34 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+
+  # Monitor Central Server
+  - job_name: 'central-server'
+    static_configs:
+      - targets: ['CENTRAL_SERVER_IP:9100']
+        labels:
+          server: 'central-server'
+
+  # Monitor SubServer 1
+  - job_name: 'subserver-1'
+    static_configs:
+      - targets: ['SUBSERVER_1_IP:9100']
+        labels:
+          server: 'subserver-1'
+
+  # Monitor SubServer 2
+  - job_name: 'subserver-2'
+    static_configs:
+      - targets: ['SUBSERVER_2_IP:9100']
+        labels:
+          server: 'subserver-2'
+
+  # Monitor SubServer 3
+  - job_name: 'subserver-3'
+    static_configs:
+      - targets: ['SUBSERVER_3_IP:9100']
+        labels:
+          server: 'subserver-3'
+

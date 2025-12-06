@@ -1,0 +1,24 @@
+spring.application.name=demo
+
+# MongoDB Configuration
+spring.data.mongodb.uri=${MONGO_URI}
+spring.data.mongodb.database=voddb
+
+icurff.app.jwtSecret=mysecret
+icurff.app.jwtExpirationMs=86400000
+icurff.app.tokenExprirationSec=300
+
+
+# Prometheus Configuration
+icurff.app.prometheusEndpoint=${PROMETHEUS_ENDPOINT}
+
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=nguyeniah2810@gmail.com
+spring.mail.password=${PASS_MAIL}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+logging.level.org.springframework.security=DEBUG
+
+
