@@ -22,11 +22,10 @@ public class JwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-        @Value("${icurff.app.jwtSecret:mysecret}")
-    private String jwtSecret;
+    private String jwtSecret = mysecret;
+    
 
-       @Value("${icurff.app.jwtExpirationMs:86400000}")
-        private int jwtExpirationMs;
+        private int jwtExpirationMs= 86400000;
 
     public String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
