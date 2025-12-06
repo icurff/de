@@ -13,4 +13,8 @@ spring:
     username: ${RABBITMQ_USER:admin}
     password: ${RABBITMQ_PASSWORD:admin}
 
+icurff:
+  app:
+    storage: ${ICURFF_APP_STORAGE}
+    location: ${ICURFF_APP_LOCATION}
 
