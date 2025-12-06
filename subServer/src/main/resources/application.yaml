@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: ${APP_NAME:sub-server}
+  
+  data:
+    mongodb:
+      uri: ${MONGO_URI}
+      database: ${MONGO_DATABASE:voddb}
+  
+  rabbitmq:
+    host: ${RABBITMQ_HOST:rabbitmq}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:admin}
+    password: ${RABBITMQ_PASSWORD:admin}
+
+icurff:
+  app:
+    jwtSecret: ${JWT_SECRET}
+    jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}
+    tokenExprirationSec: ${TOKEN_EXPIRATION_SEC:300}
+
