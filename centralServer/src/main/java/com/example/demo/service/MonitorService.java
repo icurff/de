@@ -59,7 +59,7 @@ public class MonitorService {
 
     public ServerSpecification collectServerMetrics(Server server) {
         try {
-            String serverIp = server.getIp();
+            String serverIp = server.getIp() + ":9100";
 
             String ramTotalQuery = "node_memory_MemTotal_bytes{instance=\"" + serverIp + "\"} / 1073741824";
             String ramUsageQuery = "(1 - (node_memory_MemAvailable_bytes{instance=\"" + serverIp + "\"} / node_memory_MemTotal_bytes{instance=\"" + serverIp + "\"})) * 100";
@@ -95,7 +95,7 @@ public class MonitorService {
 
     public boolean isServerUp(Server server) {
         try {
-            String query = "up{instance=\"" + server.getIp() + "\"}";
+            String query = "up{instance=\"" + server.getIp() + ":9100\"}";
             Double result = queryValue(query);
             return result != null && result > 0;
         } catch (Exception e) {
