@@ -27,7 +27,7 @@ public class VideoService {
     @Value("${icurff.app.storage}")
     private String storageBaseDir;
 
-    @Value("${icurff.app.server.location:localhost:8081}")
+    @Value("${icurff.app.location}")
     private String serverLocation;
 
     @Autowired

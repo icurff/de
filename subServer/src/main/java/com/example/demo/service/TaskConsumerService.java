@@ -18,7 +18,7 @@ public class TaskConsumerService {
     @Autowired
     private VideoService videoService;
 
-    @Value("${icurff.app.server.location:localhost:8081}")
+    @Value("${icurff.app.location}")
     private String serverLocation;
 
     @RabbitListener(queues = "${rabbitmq.queue}", containerFactory = "rabbitListenerContainerFactory")
