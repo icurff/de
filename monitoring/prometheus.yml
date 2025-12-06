@@ -21,14 +21,14 @@ scrape_configs:
   # Monitor SubServer 2
   - job_name: 'subserver-2'
     static_configs:
-      - targets: ['47.129.105.74:9100']
+      - targets: ['13.212.183.23:9100']
         labels:
           server: 'subserver-2'
 
   # Monitor SubServer 3
   - job_name: 'subserver-3'
     static_configs:
-      - targets: ['18.140.199.234:9100']
+      - targets: ['47.129.214.212:9100']
         labels:
           server: 'subserver-3'
 
