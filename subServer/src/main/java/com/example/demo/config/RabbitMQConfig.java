@@ -17,8 +17,8 @@ public class RabbitMQConfig {
     private String exchangeName;
     @Value("${rabbitmq.queue}")
     private String queueName;
-    @Value("${rabbitmq.routingKey}")
-    private String routingKey;
+    @Value("${rabbitmq.routingkey}")
+    private String routingkey;
 
     @Bean
     public TopicExchange exchange() {
@@ -32,7 +32,7 @@ public class RabbitMQConfig {
 
     @Bean
     Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
+        return BindingBuilder.bind(queue).to(exchange).with(routingkey);
     }
 
     @Bean

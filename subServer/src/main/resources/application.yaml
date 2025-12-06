@@ -1,12 +1,12 @@
 spring:
   application:
     name: ${APP_NAME:sub-server}
-  
+
   data:
     mongodb:
       uri: ${MONGO_URI}
       database: ${MONGO_DATABASE:voddb}
-  
+
   rabbitmq:
     host: ${RABBITMQ_HOST:rabbitmq}
     port: ${RABBITMQ_PORT:5672}
@@ -16,10 +16,9 @@ spring:
 rabbitmq:
   exchange: ${RABBITMQ_EXCHANGE}
   queue: ${RABBITMQ_QUEUE}
-  routingKey: ${RABBITMQ_ROUTING_KEY}
+  routingkey: ${RABBITMQ_ROUTING_KEY}
 
 icurff:
   app:
     storage: ${ICURFF_APP_STORAGE}
     location: ${ICURFF_APP_LOCATION}
-

@@ -17,7 +17,7 @@ public class TaskPublisherService {
     @Value("${rabbitmq.exchange}")
     private String exchangeName;
     @Value("${rabbitmq.routingkey}")
-    private String routingKey;
+    private String routingkey;
 
     public void publishTranscodeTask(String videoId, String videoPath, String outputDir, String resolution) {
         Map<String, Object> payload = new HashMap<>();
@@ -40,11 +40,11 @@ public class TaskPublisherService {
     }
 
     private void sendTask(Map<String, Object> payload) {
-        System.out.println("Preparing to send task to Exchange: '" + exchangeName + "', RoutingKey: '" + routingKey + "'");
+        System.out.println("Preparing to send task to Exchange: '" + exchangeName + "', routingkey: '" + routingkey + "'");
         CorrelationData correlationData = new CorrelationData(UUID.randomUUID().toString());
 
         try {
-            rabbitTemplate.convertAndSend(exchangeName, routingKey, payload, correlationData);
+            rabbitTemplate.convertAndSend(exchangeName, routingkey, payload, correlationData);
             System.out.println("Task sent to queue: " + payload + " with correlation id: " + correlationData.getId());
         } catch (Exception e) {
             System.err.println("FAILED to send task to RabbitMQ: " + e.getMessage());
