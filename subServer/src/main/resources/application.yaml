@@ -13,6 +13,11 @@ spring:
     username: ${RABBITMQ_USER:admin}
     password: ${RABBITMQ_PASSWORD:admin}
 
+rabbitmq:
+  exchange: ${RABBITMQ_EXCHANGE:transcode.exchange}
+  queue: ${RABBITMQ_QUEUE:mess.queue}
+  routingKey: ${RABBITMQ_ROUTING_KEY:trascode.key}
+
 icurff:
   app:
     storage: ${ICURFF_APP_STORAGE}
