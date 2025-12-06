@@ -22,7 +22,7 @@ public class JwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-    private String jwtSecret = mysecret;
+    private String jwtSecret = "mysecret";
     
 
         private int jwtExpirationMs= 86400000;
