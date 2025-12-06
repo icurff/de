@@ -78,7 +78,10 @@ public class WebSecurityConfig {
         configuration.setAllowedOriginPatterns(List.of("*")); // Cho phép tất cả origins
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // nếu bạn gửi Authorization hoặc cookie
+        configuration.setExposedHeaders(List.of("*")); // Expose all headers in response
+        configuration.setMaxAge(3600L); // Cache preflight response for 1 hour
+        // Note: allowCredentials removed because it conflicts with wildcard origins
+        // Bearer tokens don't require credentials flag
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
