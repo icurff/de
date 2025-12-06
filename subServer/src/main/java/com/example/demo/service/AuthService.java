@@ -37,9 +37,7 @@ public class AuthService {
 
     @Autowired
     private EmailUtil emailUtil;
-
-    @Value("${icurff.app.tokenExprirationSec}")
-    private long tokenExpirationSeconds;
+    private long tokenExpirationSeconds=300;
 
     public UserDetailsImpl authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(

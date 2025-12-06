@@ -42,8 +42,7 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Value("${icurff.app.tokenExprirationSec}")
-    private long tokenExpirationSeconds;
+    private long tokenExpirationSeconds=300;
 
     public LoginResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
