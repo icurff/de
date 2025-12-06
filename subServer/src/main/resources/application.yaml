@@ -14,9 +14,9 @@ spring:
     password: ${RABBITMQ_PASSWORD:admin}
 
 rabbitmq:
-  exchange: ${RABBITMQ_EXCHANGE:transcode.exchange}
-  queue: ${RABBITMQ_QUEUE:mess.queue}
-  routingKey: ${RABBITMQ_ROUTING_KEY:trascode.key}
+  exchange: ${RABBITMQ_EXCHANGE}
+  queue: ${RABBITMQ_QUEUE}
+  routingKey: ${RABBITMQ_ROUTING_KEY}
 
 icurff:
   app:
