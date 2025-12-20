@@ -34,7 +34,7 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.roles.add(ERole.ROLE_USER);
+        this.roles.add(ERole.ROLE_ADMIN);
     }
 
 }

@@ -41,10 +41,10 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Username/Email</Label>
+        <Label htmlFor="usernameOrEmail">Username or Email</Label>
         <Input
-          id="email"
-          placeholder="you@email.com"
+          id="usernameOrEmail"
+          placeholder="Username or email"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
@@ -78,7 +78,7 @@ export function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
         className="w-full h-12 bg-[#00b8e6] hover:bg-[#00a3d1] text-white"
         disabled={loading}
       >
-        {loading ? "Please wait..." : "Log in with an email"}
+        {loading ? "Please wait..." : "Sign In"}
       </Button>
     </form>
   );
