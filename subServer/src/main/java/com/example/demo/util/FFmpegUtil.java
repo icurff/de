@@ -85,6 +85,38 @@ public class FFmpegUtil {
             throw new IOException("FFmpeg thumbnail generation failed with exit code " + exitCode);
         }
     }
+
+    public static Integer getVideoDuration(String videoPath) throws IOException, InterruptedException {
+        videoPath = videoPath.replace("\\", "/");
+        
+        ProcessBuilder pb = new ProcessBuilder(
+                "ffprobe", "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                videoPath
+        );
+        pb.redirectErrorStream(true);
+        Process p = pb.start();
+        
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+            String line = reader.readLine();
+            if (line != null && !line.trim().isEmpty()) {
+                try {
+                    double durationSeconds = Double.parseDouble(line.trim());
+                    return (int) Math.round(durationSeconds);
+                } catch (NumberFormatException e) {
+                    throw new IOException("Failed to parse duration: " + line, e);
+                }
+            }
+        }
+        
+        int exitCode = p.waitFor();
+        if (exitCode != 0) {
+            throw new IOException("FFprobe failed to get video duration with exit code " + exitCode);
+        }
+        
+        throw new IOException("No duration found in ffprobe output");
+    }
 }
 //    public static void transcodeVideo(String input, String outputDir, String height, String name)
 //            throws IOException {

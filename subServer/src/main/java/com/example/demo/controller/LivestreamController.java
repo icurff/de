@@ -1,8 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.LiveStreamKey;
-import com.example.demo.service.LiveStreamService;
 import com.example.demo.security.UserDetailsImpl;
+import com.example.demo.service.LivestreamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,19 +15,26 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/livestream")
 @RequiredArgsConstructor
-public class LiveStreamController {
-    private final LiveStreamService liveStreamService;
+public class LivestreamController {
+    private final LivestreamService livestreamService;
 
+    /**
+     * Get current user's stream key and info
+     */
     @GetMapping
     public ResponseEntity<LiveStreamKey> getLiveStream(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseEntity.ok(liveStreamService.getLiveStream(userDetails.getId(), userDetails.getUsername())); 
+        return ResponseEntity.ok(livestreamService.getLiveStreamKey(userDetails.getId(), userDetails.getUsername()));
     }
 
+    /**
+     * Get live stream info by username for public viewing
+     * Returns stream info with FLV URL if user is live
+     */
     @GetMapping("/user/{username}")
     public ResponseEntity<?> getLiveStreamByUsername(@PathVariable String username) {
-        Optional<LiveStreamKey> optStream = liveStreamService.findByUsername(username);
+        Optional<LiveStreamKey> optKey = livestreamService.getLiveStreamKeyByUsername(username);
         
-        if (optStream.isEmpty()) {
+        if (optKey.isEmpty()) {
             return ResponseEntity.ok(Map.of(
                 "isLive", false,
                 "username", username,
@@ -35,9 +42,9 @@ public class LiveStreamController {
             ));
         }
         
-        LiveStreamKey stream = optStream.get();
+        LiveStreamKey streamKey = optKey.get();
         
-        if (!stream.isLive()) {
+        if (!streamKey.isLive()) {
             return ResponseEntity.ok(Map.of(
                 "isLive", false,
                 "username", username,
@@ -46,34 +53,39 @@ public class LiveStreamController {
         }
         
         // Build FLV URL for live playback
-        String flvUrl = "http://localhost:18088/live/" + stream.getStreamKey() + ".flv";
+        String flvUrl = "http://localhost:18088/live/" + streamKey.getStreamKey() + ".flv";
 
-        // Build response - use HashMap to allow null values
         Map<String, Object> response = new HashMap<>();
-        response.put("id", stream.getId());
-        response.put("username", stream.getUsername());
-        response.put("title", stream.getTitle() != null ? stream.getTitle() : "");
-        response.put("description", stream.getDescription() != null ? stream.getDescription() : "");
-        response.put("isLive", stream.isLive());
+        response.put("id", streamKey.getId());
+        response.put("username", streamKey.getUsername());
+        response.put("title", streamKey.getTitle() != null ? streamKey.getTitle() : "");
+        response.put("description", streamKey.getDescription() != null ? streamKey.getDescription() : "");
+        response.put("isLive", streamKey.isLive());
         response.put("hlsUrl", flvUrl);
         
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Check if a user is currently live
+     */
     @GetMapping("/status/{username}")
     public ResponseEntity<Map<String, Object>> checkLiveStatus(@PathVariable String username) {
-        boolean isLive = liveStreamService.isUserLive(username);
+        boolean isLive = livestreamService.isUserLive(username);
         return ResponseEntity.ok(Map.of(
             "username", username,
             "isLive", isLive
         ));
     }
 
+    /**
+     * Setup/update stream info (title, description)
+     */
     @PostMapping("/setup")
     public ResponseEntity<LiveStreamKey> setupStream(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody Map<String, String> payload) {
-        return ResponseEntity.ok(liveStreamService.updateLiveStream(
+        return ResponseEntity.ok(livestreamService.updateLiveStreamInfo(
                 userDetails.getId(),
                 userDetails.getUsername(),
                 payload.get("title"),
@@ -81,8 +93,11 @@ public class LiveStreamController {
         ));
     }
 
+    /**
+     * Reset stream key
+     */
     @PostMapping("/reset-key")
     public ResponseEntity<LiveStreamKey> resetKey(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseEntity.ok(liveStreamService.resetStreamKey(userDetails.getId(), userDetails.getUsername()));
+        return ResponseEntity.ok(livestreamService.resetStreamKey(userDetails.getId(), userDetails.getUsername()));
     }
 }

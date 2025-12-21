@@ -68,7 +68,7 @@ public class VideoService {
 
         Path chunkDir = Path.of(storageBaseDir, "uploads", username, sessionId);
         Path outputVideoPath = Path.of(
-                storageBaseDir, "outputs", username, vidId,"raw", fileName);
+                storageBaseDir, "outputs", username,"videos", vidId,"raw", fileName);
         Files.createDirectories(outputVideoPath.getParent());
 
         try (var out = Files.newOutputStream(outputVideoPath)) {
@@ -112,7 +112,7 @@ public class VideoService {
         int[] resolution = FFmpegUtil.getVideoResolution(outputVideoPath.toAbsolutePath().toString());
 
         // Generate thumbnail
-        Path thumbnailPath = Path.of(storageBaseDir, "outputs", username, vidId, "thumbnail.jpg");
+        Path thumbnailPath = Path.of(storageBaseDir, "outputs", username,"videos", vidId, "thumbnail.jpg");
         Files.createDirectories(thumbnailPath.getParent());
 
         double thumbnailSecond = 1.0;
@@ -154,7 +154,7 @@ public class VideoService {
             if (res <= height) {
                 System.out.println("Queueing transcoding task for resolution: " + res);
                 Path processedVideoPath = Path.of(
-                        storageBaseDir, "outputs", username, vidId, String.valueOf(res));
+                        storageBaseDir, "outputs", username,"videos", vidId, String.valueOf(res));
 
                 taskPublisherService.publishTranscodeTask(vidId, outputVideoPath.toString(), processedVideoPath.toString(), String.valueOf(res));
             } else {
@@ -220,7 +220,7 @@ public class VideoService {
             return false;
         }
 
-        Path videoDirectory = Path.of(storageBaseDir, "outputs", username, videoId);
+        Path videoDirectory = Path.of(storageBaseDir, "outputs", username,"videos", videoId);
         try {
             if (Files.exists(videoDirectory)) {
                 Files.walk(videoDirectory)

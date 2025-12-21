@@ -19,7 +19,9 @@ const router = createBrowserRouter([
     element: <LivestreamPage />,
   },
   {
-    path: "/live/:userId",
+    // Route format: /@username/live
+    // The @ is encoded as %40 in the URL
+    path: "/:atUsername/live",
     element: <UserLivePage />,
   },
   {
@@ -42,23 +44,6 @@ const router = createBrowserRouter([
     path: "/admin/servers",
     element: <AdminServerPage />,
   },
-
-  //   {
-  //     path: "/login",
-  //     element: (
-  //       <RedirectIfAutheenticated>
-  //         <LoginPage />
-  //       </RedirectIfAutheenticated>
-  //     ),
-  //   },
-  //   {
-  //     path: "/admin",
-  //     element: (
-  //       <Authenticated forAdmin={true}>
-  //         <AdminPage />
-  //       </Authenticated>
-  //     ),
-  //   },
   {
     path: "*",
     element: <NotFoundPage />,
