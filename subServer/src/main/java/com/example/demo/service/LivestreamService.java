@@ -95,8 +95,7 @@ public class LivestreamService {
         return true;
     }
 
-Remove start time from map (cleanup)
-     */
+
     public void handleUnpublish(String streamKey) {
         Optional<LiveStreamKey> optKey = liveStreamKeyRepository.findByStreamKey(streamKey);
         if (optKey.isEmpty()) {
