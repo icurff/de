@@ -81,7 +81,7 @@ public class LivestreamService {
         }
 
         String streamEndpoint =
-                "http://" + serverIp + ":8088/live/" + key.getStreamKey() + ".flv";
+                "http://" + serverIp + "/live/" + key.getStreamKey() + ".flv";
 
         return Optional.of(streamEndpoint);
     }
