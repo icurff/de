@@ -245,37 +245,9 @@ const LivestreamPage = () => {
     }
   };
 
-  const copyToClipboard = async (text: string, label: string) => {
-    try {
-      // Try modern Clipboard API first
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        toast.success(`${label} copied to clipboard`);
-        return;
-      }
-      
-      // Fallback to execCommand for older browsers
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-999999px";
-      textArea.style.top = "-999999px";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      
-      const successful = document.execCommand("copy");
-      document.body.removeChild(textArea);
-      
-      if (successful) {
-        toast.success(`${label} copied to clipboard`);
-      } else {
-        throw new Error("execCommand failed");
-      }
-    } catch (error) {
-      console.error("Failed to copy to clipboard:", error);
-      toast.error(`Failed to copy ${label}`);
-    }
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied to clipboard`);
   };
 
   // Use username from auth context, fallback to stream data
