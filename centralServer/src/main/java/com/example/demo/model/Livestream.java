@@ -28,10 +28,10 @@ public class Livestream {
     private EVideoPrivacy privacy;
     // DVR recording path
     private String dvrPath;
-    
+
     @CreatedDate
     private Instant uploadedDate;
-    
+
     @LastModifiedDate
     private Instant lastModifiedDate;
 }

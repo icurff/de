@@ -9,4 +9,3 @@ import java.util.Optional;
 public interface LivestreamRepository extends MongoRepository<Livestream, String> {
     Optional<Livestream> findById(String id);
 }
-

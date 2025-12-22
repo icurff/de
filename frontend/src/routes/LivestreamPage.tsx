@@ -9,7 +9,14 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import axios from "@/config/CustomAxios";
 import { toast } from "sonner";
-import { Eye, EyeOff, Copy, ExternalLink, Radio, RefreshCw } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Copy,
+  ExternalLink,
+  Radio,
+  RefreshCw,
+} from "lucide-react";
 import flvjs from "flv.js";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -20,6 +27,8 @@ interface LiveStream {
   description: string;
   streamKey: string;
   isLive: boolean;
+  streamEndpoint?: string;
+  rtmpUrl?: string;
 }
 
 const LivestreamPage = () => {
@@ -35,7 +44,10 @@ const LivestreamPage = () => {
   const fetchStreamInfo = useCallback(async () => {
     try {
       const response = await axios.get("/api/livestream");
-      setStream(response.data);
+      setStream((prev) => ({
+        ...prev,
+        ...response.data,
+      }));
       setTitle(response.data.title || "");
       setDescription(response.data.description || "");
     } catch (error) {
@@ -43,22 +55,45 @@ const LivestreamPage = () => {
     }
   }, []);
 
+  const fetchStreamConnectionInfo = useCallback(async () => {
+    try {
+      const response = await axios.get("/api/livestream/stream-info");
+      setStream((prev) => ({
+        ...prev,
+        ...response.data,
+        rtmpUrl: response.data.rtmpUrl,
+        streamKey: response.data.streamKey,
+      }));
+    } catch (error) {
+      console.error("Failed to fetch stream connection info", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchStreamInfo();
-  }, [fetchStreamInfo]);
+    fetchStreamConnectionInfo();
+  }, [fetchStreamInfo, fetchStreamConnectionInfo]);
 
   // Poll for live status every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchStreamInfo();
+      // Only fetch connection info if not live (to avoid changing server when live)
+      if (!stream?.isLive) {
+        fetchStreamConnectionInfo();
+      }
     }, 5000);
-    
+
     return () => clearInterval(interval);
-  }, [fetchStreamInfo]);
+  }, [fetchStreamInfo, fetchStreamConnectionInfo, stream?.isLive]);
 
   // Setup FLV player when stream is live
   useEffect(() => {
-    console.log("Preview: Checking stream status:", { isLive: stream?.isLive, streamKey: stream?.streamKey, videoElement: !!videoRef.current });
+    console.log("Preview: Checking stream status:", {
+      isLive: stream?.isLive,
+      streamKey: stream?.streamKey,
+      videoElement: !!videoRef.current,
+    });
 
     if (!stream?.isLive || !stream?.streamKey || !videoRef.current) {
       // Cleanup if stream went offline
@@ -81,9 +116,20 @@ const LivestreamPage = () => {
       return;
     }
 
-    const flvUrl = `http://localhost:18088/live/${stream.streamKey}.flv`;
-    console.log("Preview: Initializing player with URL:", flvUrl);
-    
+    // Get FLV URL from API response, fallback to constructing if not provided
+    const streamEndpoint =
+      stream.streamEndpoint ||
+      (stream.streamKey
+        ? `http://localhost:8088/live/${stream.streamKey}.flv`
+        : "");
+
+    if (!streamEndpoint) {
+      console.warn("No FLV URL available for stream");
+      return;
+    }
+
+    console.log("Preview: Initializing player with URL:", streamEndpoint);
+
     // Cleanup existing player first
     if (flvPlayerRef.current) {
       try {
@@ -97,44 +143,51 @@ const LivestreamPage = () => {
     }
 
     try {
-      const player = flvjs.createPlayer({
-        type: "flv",
-        url: flvUrl,
-        isLive: true,
-        hasAudio: true,
-        hasVideo: true,
-        cors: true,
-      }, {
-        enableWorker: false, // Fix Webpack/Vite worker issue
-        enableStashBuffer: false,
-        stashInitialSize: 128,
-        lazyLoad: false,
-        autoCleanupSourceBuffer: true,
-      });
+      const player = flvjs.createPlayer(
+        {
+          type: "flv",
+          url: streamEndpoint,
+          isLive: true,
+          hasAudio: true,
+          hasVideo: true,
+          cors: true,
+        },
+        {
+          enableWorker: false, // Fix Webpack/Vite worker issue
+          enableStashBuffer: false,
+          stashInitialSize: 128,
+          lazyLoad: false,
+          autoCleanupSourceBuffer: true,
+        }
+      );
 
       // Add error handlers
       player.on(flvjs.Events.ERROR, (errorType, errorDetail, errorInfo) => {
-        console.error("Preview FLV Player Error:", errorType, errorDetail, errorInfo);
+        console.error(
+          "Preview FLV Player Error:",
+          errorType,
+          errorDetail,
+          errorInfo
+        );
         // Implement retry logic if needed, but be careful of infinite loops in preview
       });
 
       player.attachMediaElement(videoRef.current);
       player.load();
-      
+
       const playPromise = player.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
           console.error("Error playing FLV preview:", err);
           // Auto-mute if playback fails (browsers block autoplay with sound)
           if (videoRef.current) {
-             videoRef.current.muted = true;
-             player.play().catch(e => console.error("Retry play failed:", e));
+            videoRef.current.muted = true;
+            player.play().catch((e) => console.error("Retry play failed:", e));
           }
         });
       }
 
       flvPlayerRef.current = player;
-
     } catch (error) {
       console.error("Error creating FLV player:", error);
     }
@@ -151,13 +204,23 @@ const LivestreamPage = () => {
         }
       }
     };
-  }, [stream?.isLive, stream?.streamKey]);
+  }, [stream?.isLive, stream?.streamKey, stream?.streamEndpoint]);
 
   const handleSetup = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("/api/livestream/setup", { title, description });
-      setStream(response.data);
+      const response = await axios.post("/api/livestream/setup", {
+        title,
+        description,
+      });
+      // Update stream info but keep existing rtmpUrl and streamKey
+      setStream((prev) => ({
+        ...prev,
+        ...response.data,
+        // Preserve rtmpUrl and streamKey from previous state
+        rtmpUrl: prev?.rtmpUrl || response.data.rtmpUrl,
+        streamKey: prev?.streamKey || response.data.streamKey,
+      }));
       toast.success("Stream info updated");
     } catch (error) {
       toast.error("Failed to update stream info");
@@ -170,7 +233,12 @@ const LivestreamPage = () => {
     if (!confirm("Are you sure? This will invalidate the old key.")) return;
     try {
       const response = await axios.post("/api/livestream/reset-key", {});
-      setStream(response.data);
+      setStream((prev) => ({
+        ...prev,
+        ...response.data,
+      }));
+      // Fetch connection info again to get updated rtmpUrl if needed
+      await fetchStreamConnectionInfo();
       toast.success("Stream key reset");
     } catch (error) {
       toast.error("Failed to reset stream key");
@@ -184,9 +252,17 @@ const LivestreamPage = () => {
 
   // Use username from auth context, fallback to stream data
   const username = user?.username || stream?.username || "";
-  const rtmpUrl = "rtmp://localhost:11935/live";
-  const publicUrl = username ? `${window.location.origin}/@${username}/live` : "";
-  const flvPreviewUrl = stream ? `http://localhost:18088/live/${stream.streamKey}.flv` : "";
+  // Use rtmpUrl from API response if available (from load-balanced server), otherwise fallback to localhost
+  const rtmpUrl = stream?.rtmpUrl || "rtmp://localhost:11935/live";
+  const publicUrl = username
+    ? `${window.location.origin}/@${username}/live`
+    : "";
+  // Use streamEndpoint from API response if available, otherwise construct from streamKey
+  const flvPreviewUrl =
+    stream?.streamEndpoint ||
+    (stream?.streamKey
+      ? `http://localhost:8088/live/${stream.streamKey}.flv`
+      : "");
 
   return (
     <div className="min-h-screen bg-background">
@@ -196,7 +272,13 @@ const LivestreamPage = () => {
         <main className="flex-1 p-8 space-y-8">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold">Livestream Setup</h1>
-            <Button variant="outline" onClick={fetchStreamInfo}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchStreamInfo();
+                fetchStreamConnectionInfo();
+              }}
+            >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Status
             </Button>
@@ -212,7 +294,9 @@ const LivestreamPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Title</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Title
+                    </label>
                     <Input
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -220,7 +304,9 @@ const LivestreamPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Description</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Description
+                    </label>
                     <Textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -228,7 +314,11 @@ const LivestreamPage = () => {
                       rows={3}
                     />
                   </div>
-                  <Button onClick={handleSetup} disabled={loading} className="w-full">
+                  <Button
+                    onClick={handleSetup}
+                    disabled={loading}
+                    className="w-full"
+                  >
                     {loading ? "Saving..." : "Save Details"}
                   </Button>
                 </CardContent>
@@ -250,17 +340,21 @@ const LivestreamPage = () => {
                 <CardContent className="space-y-4">
                   {/* Public Link */}
                   <div>
-                    <label className="block text-sm font-medium mb-1">Public Link</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Public Link
+                    </label>
                     <div className="flex gap-2">
-                      <Input 
-                        value={publicUrl || "Loading..."} 
-                        readOnly 
-                        className="font-mono text-sm" 
+                      <Input
+                        value={publicUrl || "Loading..."}
+                        readOnly
+                        className="font-mono text-sm"
                       />
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => publicUrl && copyToClipboard(publicUrl, "Public link")}
+                        onClick={() =>
+                          publicUrl && copyToClipboard(publicUrl, "Public link")
+                        }
                         disabled={!publicUrl}
                       >
                         <Copy className="h-4 w-4" />
@@ -268,7 +362,10 @@ const LivestreamPage = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => username && window.open(`/@${username}/live`, "_blank")}
+                        onClick={() =>
+                          username &&
+                          window.open(`/@${username}/live`, "_blank")
+                        }
                         disabled={!username}
                       >
                         <ExternalLink className="h-4 w-4" />
@@ -283,9 +380,15 @@ const LivestreamPage = () => {
 
                   {/* RTMP URL */}
                   <div>
-                    <label className="block text-sm font-medium mb-1">RTMP URL</label>
+                    <label className="block text-sm font-medium mb-1">
+                      RTMP URL
+                    </label>
                     <div className="flex gap-2">
-                      <Input value={rtmpUrl} readOnly className="font-mono text-sm" />
+                      <Input
+                        value={rtmpUrl}
+                        readOnly
+                        className="font-mono text-sm"
+                      />
                       <Button
                         variant="outline"
                         size="icon"
@@ -298,7 +401,9 @@ const LivestreamPage = () => {
 
                   {/* Stream Key */}
                   <div>
-                    <label className="block text-sm font-medium mb-1">Stream Key</label>
+                    <label className="block text-sm font-medium mb-1">
+                      Stream Key
+                    </label>
                     <div className="flex gap-2">
                       <Input
                         type={showKey ? "text" : "password"}
@@ -311,12 +416,19 @@ const LivestreamPage = () => {
                         size="icon"
                         onClick={() => setShowKey(!showKey)}
                       >
-                        {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showKey ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => stream?.streamKey && copyToClipboard(stream.streamKey, "Stream key")}
+                        onClick={() =>
+                          stream?.streamKey &&
+                          copyToClipboard(stream.streamKey, "Stream key")
+                        }
                         disabled={!stream?.streamKey}
                       >
                         <Copy className="h-4 w-4" />
@@ -327,9 +439,9 @@ const LivestreamPage = () => {
                     </p>
                   </div>
 
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleResetKey} 
+                  <Button
+                    variant="destructive"
+                    onClick={handleResetKey}
                     className="w-full"
                     disabled={!stream}
                   >
@@ -340,9 +452,11 @@ const LivestreamPage = () => {
 
                   {/* Server Management */}
                   <div>
-                    <h4 className="text-sm font-medium mb-2">Server Management</h4>
+                    <h4 className="text-sm font-medium mb-2">
+                      Server Management
+                    </h4>
                     <a
-                      href="http://localhost:18088/console/ng_index.html"
+                      href="http://localhost:8088/console/ng_index.html"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-blue-500 hover:underline flex items-center gap-1"
@@ -406,7 +520,9 @@ const LivestreamPage = () => {
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div>
-                      <span className="text-sm text-muted-foreground">FLV URL:</span>
+                      <span className="text-sm text-muted-foreground">
+                        FLV URL:
+                      </span>
                       <code className="block text-xs bg-muted p-2 rounded mt-1 break-all">
                         {flvPreviewUrl}
                       </code>
@@ -418,7 +534,9 @@ const LivestreamPage = () => {
               {/* How to Stream Guide */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">How to Start Streaming</CardTitle>
+                  <CardTitle className="text-lg">
+                    How to Start Streaming
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">

@@ -14,20 +14,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "livestream_keys")
-public class LiveStreamKey {
+public class LivestreamKey {
     @Id
     private String id;
-    
     @Indexed(unique = true)
     private String userId;
-    
     private String username;
-    private String title;
-    private String description;
-    
+    private String title = "Livestream";
+    private String description= "Wellcome to my livestream";
     @Indexed(unique = true)
     private String streamKey;
-    
     @JsonProperty("isLive")
     private boolean isLive;
+    private String currentLivestreamId;
 }

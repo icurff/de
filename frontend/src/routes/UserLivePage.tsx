@@ -15,7 +15,7 @@ interface LiveStreamResponse {
   title?: string;
   description?: string;
   isLive: boolean;
-  hlsUrl?: string;
+  streamEndpoint?: string;
   privacy?: string;
   message?: string;
 }
@@ -24,7 +24,9 @@ const UserLivePage = () => {
   const { atUsername } = useParams();
   const navigate = useNavigate();
   // Remove @ prefix if present (route is /:atUsername/live, URL is /@username/live)
-  const username = atUsername?.startsWith("@") ? atUsername.slice(1) : atUsername;
+  const username = atUsername?.startsWith("@")
+    ? atUsername.slice(1)
+    : atUsername;
   const [stream, setStream] = useState<LiveStreamResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -41,9 +43,13 @@ const UserLivePage = () => {
 
   // Setup FLV player when stream is live
   useEffect(() => {
-    console.log("Checking stream status:", { isLive: stream?.isLive, url: stream?.hlsUrl, videoElement: !!videoRef.current });
-    
-    if (!stream?.isLive || !stream?.hlsUrl || !videoRef.current) {
+    console.log("Checking stream status:", {
+      isLive: stream?.isLive,
+      url: stream?.streamEndpoint,
+      videoElement: !!videoRef.current,
+    });
+
+    if (!stream?.isLive || !stream?.streamEndpoint || !videoRef.current) {
       if (flvPlayerRef.current) {
         console.log("Cleaning up player (stream offline or invalid)");
         try {
@@ -77,23 +83,26 @@ const UserLivePage = () => {
       flvPlayerRef.current = null;
     }
 
-    console.log("Creating new FLV player for URL:", stream.hlsUrl);
+    console.log("Creating new FLV player for URL:", stream.streamEndpoint);
 
     try {
-      const player = flvjs.createPlayer({
-        type: "flv",
-        url: stream.hlsUrl,
-        isLive: true,
-        hasAudio: true,
-        hasVideo: true,
-        cors: true, // Enable CORS
-      }, {
-        enableWorker: false, // Fix Webpack/Vite worker issue
-        enableStashBuffer: false,
-        stashInitialSize: 128,
-        lazyLoad: false,
-        autoCleanupSourceBuffer: true,
-      });
+      const player = flvjs.createPlayer(
+        {
+          type: "flv",
+          url: stream.streamEndpoint,
+          isLive: true,
+          hasAudio: true,
+          hasVideo: true,
+          cors: true, // Enable CORS
+        },
+        {
+          enableWorker: false, // Fix Webpack/Vite worker issue
+          enableStashBuffer: false,
+          stashInitialSize: 128,
+          lazyLoad: false,
+          autoCleanupSourceBuffer: true,
+        }
+      );
 
       player.on(flvjs.Events.ERROR, (errorType, errorDetail, errorInfo) => {
         console.error("FLV Player Error:", errorType, errorDetail, errorInfo);
@@ -110,7 +119,7 @@ const UserLivePage = () => {
 
       player.attachMediaElement(videoRef.current);
       player.load();
-      
+
       const playPromise = player.play();
       if (playPromise !== undefined) {
         playPromise.catch((err) => {
@@ -136,19 +145,19 @@ const UserLivePage = () => {
         flvPlayerRef.current = null;
       }
     };
-  }, [stream?.isLive, stream?.hlsUrl]);
+  }, [stream?.isLive, stream?.streamEndpoint]);
 
   const fetchStreamInfo = async (uname: string) => {
     try {
       const response = await axios.get(`/api/livestream/user/${uname}`);
       const data = response.data as LiveStreamResponse;
-      
+
       // If user is not live, redirect to home
       if (!data.isLive) {
         navigate("/", { replace: true });
         return;
       }
-      
+
       setStream(data);
     } catch (err) {
       console.error("Failed to fetch stream info", err);
@@ -181,11 +190,7 @@ const UserLivePage = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <Button
-          onClick={() => navigate("/")}
-          variant="ghost"
-          className="mb-4"
-        >
+        <Button onClick={() => navigate("/")} variant="ghost" className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
@@ -213,9 +218,14 @@ const UserLivePage = () => {
             {/* Stream Info */}
             <div className="space-y-4">
               <div>
-                <h1 className="text-3xl font-bold">{stream.title || "Live Stream"}</h1>
+                <h1 className="text-3xl font-bold">
+                  {stream.title || "Live Stream"}
+                </h1>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <Badge variant="destructive" className="uppercase animate-pulse">
+                  <Badge
+                    variant="destructive"
+                    className="uppercase animate-pulse"
+                  >
                     <Radio className="h-3 w-3 mr-1" />
                     LIVE
                   </Badge>
@@ -237,9 +247,7 @@ const UserLivePage = () => {
                     <p className="font-semibold text-lg">@{stream.username}</p>
                     <p className="text-sm text-muted-foreground">Streamer</p>
                   </div>
-                  <Button variant="secondary">
-                    Follow
-                  </Button>
+                  <Button variant="secondary">Follow</Button>
                 </div>
 
                 <p className="text-muted-foreground mt-4 whitespace-pre-wrap">
@@ -254,7 +262,9 @@ const UserLivePage = () => {
             <Card className="h-[600px] flex flex-col">
               <CardHeader className="border-b py-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">Live Chat</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Live Chat
+                  </CardTitle>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Users className="h-3 w-3" />
                     <span>--</span>
