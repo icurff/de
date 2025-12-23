@@ -235,7 +235,10 @@ const UserLivePage = () => {
                 </div>
 
                 <div className="flex items-center gap-4 mt-4 p-4 bg-card rounded-lg border">
-                  <Avatar className="h-12 w-12">
+                  <Avatar 
+                    className="h-12 w-12 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => navigate(`/@${stream.username}`)}
+                  >
                     <AvatarImage
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${stream.username}`}
                     />
@@ -243,11 +246,19 @@ const UserLivePage = () => {
                       {stream.username.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
+                  <div 
+                    className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => navigate(`/@${stream.username}`)}
+                  >
                     <p className="font-semibold text-lg">@{stream.username}</p>
                     <p className="text-sm text-muted-foreground">Streamer</p>
                   </div>
-                  <Button variant="secondary">Follow</Button>
+                  <Button 
+                    variant="secondary"
+                    onClick={() => navigate(`/@${stream.username}`)}
+                  >
+                    Visit channel
+                  </Button>
                 </div>
 
                 <p className="text-muted-foreground mt-4 whitespace-pre-wrap">

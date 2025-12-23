@@ -94,12 +94,18 @@ const PlayVideoPage = () => {
         <div className="flex items-start justify-between gap-4 mb-3">
           {/* Channel Info */}
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
+            <Avatar 
+              className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate(`/@${video.username}`)}
+            >
               <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white font-semibold">
                 {getUserInitials(video.username)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
+            <div 
+              className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate(`/@${video.username}`)}
+            >
               <span className="font-semibold text-sm">{video.username}</span>
               <span className="text-xs text-muted-foreground">
                 {new Date(video.uploadedDate).toLocaleDateString("vi-VN")}
@@ -108,8 +114,9 @@ const PlayVideoPage = () => {
             <Button
               variant="default"
               className="ml-4 rounded-full bg-foreground text-background hover:bg-foreground/90"
+              onClick={() => navigate(`/@${video.username}`)}
             >
-              Subscribe
+              Visit channel
             </Button>
           </div>
 

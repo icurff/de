@@ -87,6 +87,11 @@ public class VideoService {
         return videoRepository.findByUsernameOrderByUploadedDateDesc(username, pageable);
     }
 
+    public List<Video> getPublicVideosByUsername(String username, int limit) {
+        Pageable pageable = PageRequest.of(0, Math.max(1, limit), Sort.by(Sort.Direction.DESC, "uploadedDate"));
+        return videoRepository.findByUsernameAndPrivacyOrderByUploadedDateDesc(username, EVideoPrivacy.PUBLIC, pageable);
+    }
+
     public Video updateVideoPrivacy(String videoId, String username, EVideoPrivacy privacy) {
         Video video = getVideoById(videoId);
         if (!isOwner(video, username)) {

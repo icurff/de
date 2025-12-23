@@ -1,12 +1,18 @@
 package com.example.demo.service;
 
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.LivestreamKey;
 import com.example.demo.model.Livestream;
 import com.example.demo.repository.LivestreamKeyRepository;
 import com.example.demo.repository.LivestreamRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -84,6 +90,25 @@ public class LivestreamService {
                 "http://" + serverIp + "/live/" + key.getStreamKey() + ".flv";
 
         return Optional.of(streamEndpoint);
+    }
+
+    public List<Livestream> getLivestreamsByUsername(String username, int limit) {
+        Pageable pageable = PageRequest.of(0, Math.max(1, limit), Sort.by(Sort.Direction.DESC, "uploadedDate"));
+        return livestreamRepository.findByUsernameAndDvrPathIsNotNullOrderByUploadedDateDesc(username, pageable);
+    }
+
+    public void deleteLivestream(String livestreamId, String username) {
+        Optional<Livestream> optLivestream = livestreamRepository.findById(livestreamId);
+        if (optLivestream.isEmpty()) {
+            throw new ResourceNotFoundException("Livestream not found");
+        }
+        
+        Livestream livestream = optLivestream.get();
+        if (!livestream.getUsername().equals(username)) {
+            throw new AccessDeniedException("You do not have permission to delete this livestream");
+        }
+        
+        livestreamRepository.delete(livestream);
     }
 
 }

@@ -97,7 +97,7 @@ export function VideoGrid() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {(videos ?? []).map((video) => {
+        {Array.isArray(videos) ? videos.map((video) => {
           const thumbnailSrc =
             video.thumbnail && video.thumbnail.trim().length > 0
               ? video.thumbnail
@@ -215,7 +215,7 @@ export function VideoGrid() {
               </CardContent>
             </Card>
           );
-        })}
+        }) : []}
       </div>
     </div>
   );

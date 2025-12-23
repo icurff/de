@@ -12,8 +12,17 @@ export type RecentVideo = {
 };
 
 async function fetchRecentVideos(limit: number): Promise<RecentVideo[]> {
-  const res = await axios.get(`/api/videos/recent`, { params: { limit } });
-  return res.data as RecentVideo[];
+  try {
+    const res = await axios.get(`/api/videos/recent`, { params: { limit } });
+    // Ensure we always return an array
+    if (Array.isArray(res.data)) {
+      return res.data as RecentVideo[];
+    }
+    return [];
+  } catch (error) {
+    // Return empty array on error
+    return [];
+  }
 }
 
 export function useListRecentVideos(limit = 12): UseQueryResult<RecentVideo[], Error> {

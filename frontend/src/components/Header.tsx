@@ -99,9 +99,12 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuItem className="gap-2">
+                  <DropdownMenuItem 
+                    className="gap-2"
+                    onClick={() => navigate(`/@${user?.username}`)}
+                  >
                     <User className="h-4 w-4" />
-                    Profile
+                    My Channel
                   </DropdownMenuItem>
                   <DropdownMenuItem className="gap-2">
                     <Settings className="h-4 w-4" />

@@ -176,4 +176,39 @@ public class LivestreamController {
     public ResponseEntity<LivestreamKey> resetKey(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.ok(liveStreamService.resetStreamKey(userDetails.getId(), userDetails.getUsername()));
     }
+
+    @GetMapping("/user/{username}/recordings")
+    public ResponseEntity<?> getLivestreamRecordingsByUsername(
+            @PathVariable String username,
+            @RequestParam(name = "limit", defaultValue = "50") int limit
+    ) {
+        return ResponseEntity.ok(liveStreamService.getLivestreamsByUsername(username, limit));
+    }
+
+    @GetMapping("/{livestreamId}")
+    public ResponseEntity<?> getLivestreamById(@PathVariable String livestreamId) {
+        Optional<Livestream> optLivestream = livestreamRepository.findById(livestreamId);
+        if (optLivestream.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Livestream not found");
+        }
+        return ResponseEntity.ok(optLivestream.get());
+    }
+
+    @DeleteMapping("/{livestreamId}")
+    public ResponseEntity<?> deleteLivestream(
+            @PathVariable String livestreamId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
+        }
+        try {
+            liveStreamService.deleteLivestream(livestreamId, user.getUsername());
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        } catch (org.springframework.security.access.AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+        }
+    }
 }

@@ -53,6 +53,9 @@ public class VideoController {
             @RequestParam(name = "limit", defaultValue = "12") int limit,
             @AuthenticationPrincipal UserDetailsImpl user
     ) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
+        }
         return ResponseEntity.ok(videoService.getRecentVideosForUser(user.getUsername(), limit));
     }
 
@@ -82,5 +85,13 @@ public class VideoController {
         } catch (AccessDeniedException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
         }
+    }
+
+    @GetMapping("/user/{username}")
+    public ResponseEntity<?> getPublicVideosByUsername(
+            @PathVariable String username,
+            @RequestParam(name = "limit", defaultValue = "50") int limit
+    ) {
+        return ResponseEntity.ok(videoService.getPublicVideosByUsername(username, limit));
     }
 }

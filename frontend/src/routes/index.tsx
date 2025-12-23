@@ -1,6 +1,8 @@
 import HomePage from "@/routes/HomePage";
 import LivestreamPage from "@/routes/LivestreamPage";
 import UserLivePage from "@/routes/UserLivePage";
+import UserChannelPage from "@/routes/UserChannelPage";
+import PlayLivestreamPage from "@/routes/PlayLivestreamPage";
 import NotFoundPage from "@/routes/NotFoundPage";
 import AdminDashboardPage from "@/routes/AdminDashboardPage";
 import AdminUsersPage from "@/routes/AdminUserPage";
@@ -21,12 +23,23 @@ const router = createBrowserRouter([
   {
     // Route format: /@username/live
     // The @ is encoded as %40 in the URL
+    // This must come before /:atUsername to avoid conflicts
     path: "/:atUsername/live",
     element: <UserLivePage />,
   },
   {
+    // Route format: /@username
+    // The @ is encoded as %40 in the URL
+    path: "/:atUsername",
+    element: <UserChannelPage />,
+  },
+  {
     path: "/video/:videoId",
     element: <PlayVideoPage />,
+  },
+  {
+    path: "/livestream/:livestreamId",
+    element: <PlayLivestreamPage />,
   },
   {
     path: "/manage/videos/:videoId",
