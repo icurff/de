@@ -312,48 +312,6 @@ const YouTubeVideoPlayer: React.FC<YouTubeVideoPlayerProps> = ({
     return () => clearTimeout(timeout);
   }, [isPlaying, isHovering, showSettingsMenu]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (!videoRef.current) return;
-
-      switch (e.key) {
-        case ' ':
-        case 'k':
-          e.preventDefault();
-          togglePlayPause();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          skip(-10);
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          skip(10);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          changeVolume(0.1);
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          changeVolume(-0.1);
-          break;
-        case 'm':
-          e.preventDefault();
-          toggleMute();
-          break;
-        case 'f':
-          e.preventDefault();
-          toggleFullscreen();
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
-
   // Fullscreen change listener
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -764,15 +722,6 @@ const YouTubeVideoPlayer: React.FC<YouTubeVideoPlayerProps> = ({
           )}
         </div>
       )}
-
-      {/* Keyboard shortcuts hint (optional) */}
-      <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <div className="bg-black/70 text-white text-xs px-3 py-2 rounded-lg backdrop-blur-sm">
-          <div className="font-semibold mb-1">Keyboard shortcuts:</div>
-          <div>Space/K: Play/Pause • ←/→: Skip • ↑/↓: Volume</div>
-          <div>M: Mute • F: Fullscreen</div>
-        </div>
-      </div>
     </div>
   );
 };
