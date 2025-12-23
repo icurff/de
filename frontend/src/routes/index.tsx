@@ -11,9 +11,9 @@ import ManageVideoPage from "@/routes/ManageVideoPage";
 import ManageLivestreamPage from "@/routes/ManageLivestreamPage";
 import SettingsPage from "@/routes/SettingsPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import LivestreamPage from "./LiveSteamPage";
 import LiveSetupPage from "./LiveSetupPage";
 import PlayLivestreamPage from "./PlayLivestreamPage";
+import LivestreamPage from "./LivesteamPage";
 
 const router = createBrowserRouter([
   {
