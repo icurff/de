@@ -2,7 +2,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import { useState, useEffect } from "react";
 import YouTubeVideoPlayer from "@/components/YouTubeVideoPlayer";
@@ -96,14 +96,6 @@ const PlayLivestreamPage = () => {
       : undefined;
   };
 
-  const getUserInitials = (username: string) => {
-    return username
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-  };
 
   if (loading) {
     return (
@@ -158,14 +150,11 @@ const PlayLivestreamPage = () => {
         <div className="flex items-start justify-between gap-4 mb-3">
           {/* Channel Info */}
           <div className="flex items-center gap-3">
-            <Avatar
-              className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity"
+            <UserAvatar
+              username={livestream.username}
+              size="md"
               onClick={() => navigate(`/@${livestream.username}`)}
-            >
-              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white font-semibold">
-                {getUserInitials(livestream.username)}
-              </AvatarFallback>
-            </Avatar>
+            />
             <div
               className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate(`/@${livestream.username}`)}

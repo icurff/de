@@ -6,12 +6,15 @@ import com.example.demo.model.Livestream;
 import com.example.demo.repository.LivestreamKeyRepository;
 import com.example.demo.repository.LivestreamRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,6 +24,9 @@ import java.util.UUID;
 public class LivestreamService {
     private final LivestreamKeyRepository liveStreamKeyRepository;
     private final LivestreamRepository livestreamRepository;
+
+    @Autowired
+    private SupabaseImageService supabaseImageService;
 
     public LivestreamKey getLiveStream(String userId, String username) {
         return liveStreamKeyRepository.findByUserId(userId)
@@ -114,6 +120,59 @@ public class LivestreamService {
     public Livestream getLivestreamById(String livestreamId) {
         return livestreamRepository.findById(livestreamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Livestream not found"));
+    }
+
+    public Livestream updateLivestreamMetadata(String livestreamId, String username, String title, String description) {
+        Livestream livestream = getLivestreamById(livestreamId);
+        if (!livestream.getUsername().equals(username)) {
+            throw new AccessDeniedException("You do not have permission to update this livestream");
+        }
+
+        livestream.setTitle(title);
+        livestream.setDescription(description);
+        return livestreamRepository.save(livestream);
+    }
+
+    public Livestream updateLivestreamThumbnail(String livestreamId, String username, MultipartFile thumbnailFile) throws IOException {
+        Livestream livestream = getLivestreamById(livestreamId);
+        if (!livestream.getUsername().equals(username)) {
+            throw new AccessDeniedException("You do not have permission to update this livestream");
+        }
+
+        // Delete old thumbnail from Supabase if exists
+        if (livestream.getThumbnail() != null && !livestream.getThumbnail().isEmpty()) {
+            try {
+                String oldThumbnailPath = extractFilePathFromUrl(livestream.getThumbnail());
+                if (oldThumbnailPath != null) {
+                    supabaseImageService.deleteImage(oldThumbnailPath);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to delete old thumbnail: " + e.getMessage());
+            }
+        }
+
+        // Upload new thumbnail
+        String fileName = livestreamId + "_thumbnail";
+        String folder = "thumbnails/livestreams/" + username;
+        String thumbnailUrl = supabaseImageService.uploadImage(thumbnailFile, folder, fileName);
+        
+        livestream.setThumbnail(thumbnailUrl);
+        return livestreamRepository.save(livestream);
+    }
+
+    private String extractFilePathFromUrl(String url) {
+        if (url == null || !url.contains("/storage/v1/object/public/")) {
+            return null;
+        }
+        String[] parts = url.split("/storage/v1/object/public/");
+        if (parts.length < 2) {
+            return null;
+        }
+        String[] pathParts = parts[1].split("/", 2);
+        if (pathParts.length < 2) {
+            return null;
+        }
+        return pathParts[1];
     }
 
 }

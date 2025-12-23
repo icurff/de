@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useGetVideo } from "@/hooks/Video/useGetVideo";
 import { useUpdateVideoMetadata } from "@/hooks/Video/useUpdateVideoMetadata";
 import { useUpdateVideoPrivacy } from "@/hooks/Video/useUpdateVideoPrivacy";
+import { useUploadVideoThumbnail } from "@/hooks/Video/useUploadVideoThumbnail";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Loader2, Save, Upload, Lock, Globe, Eye } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Lock, Globe, Eye, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { useToast } from "@/hooks/use-toast";
@@ -23,10 +24,12 @@ const ManageVideoPage = () => {
   const { data: video, isLoading, error } = useGetVideo(videoId || "");
   const { mutateAsync: updateMetadata, isPending: isUpdatingMetadata } = useUpdateVideoMetadata();
   const { mutateAsync: updatePrivacy, isPending: isUpdatingPrivacy } = useUpdateVideoPrivacy();
+  const { mutateAsync: uploadThumbnail, isPending: isUploadingThumbnail } = useUploadVideoThumbnail();
   const { toast } = useToast();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -283,26 +286,48 @@ const ManageVideoPage = () => {
                     {/* Upload Button */}
                     <div className="relative">
                       <input
+                        ref={fileInputRef}
                         type="file"
                         id="thumbnail-upload"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file) {
-                            // TODO: Implement file upload
+                          if (!file || !videoId) return;
+                          
+                          try {
+                            const updatedVideo = await uploadThumbnail({ videoId, file });
+                            setThumbnailUrl(updatedVideo.thumbnail);
                             toast({
-                              title: "Tính năng đang phát triển",
-                              description: "Tải lên ảnh sẽ sớm được cập nhật. Hiện tại vui lòng sử dụng URL.",
+                              title: "Thành công",
+                              description: "Đã tải lên thumbnail mới.",
                             });
+                          } catch (error: any) {
+                            const message = error?.response?.data?.error || error?.message || "Tải lên thất bại";
+                            toast({
+                              title: "Tải lên thất bại",
+                              description: message,
+                              variant: "destructive",
+                            });
+                          } finally {
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = "";
+                            }
                           }
                         }}
+                        disabled={isUploadingThumbnail}
                       />
                       <label
                         htmlFor="thumbnail-upload"
-                        className="flex items-center justify-center w-[220px] h-[124px] border-2 border-dashed border-muted-foreground/25 rounded-lg hover:border-muted-foreground/50 cursor-pointer transition-colors bg-muted/20"
+                        className={`flex items-center justify-center w-[220px] h-[124px] border-2 border-dashed border-muted-foreground/25 rounded-lg hover:border-muted-foreground/50 cursor-pointer transition-colors bg-muted/20 ${
+                          isUploadingThumbnail ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                       >
-                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        {isUploadingThumbnail ? (
+                          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                        ) : (
+                          <Upload className="h-8 w-8 text-muted-foreground" />
+                        )}
                       </label>
                     </div>
 

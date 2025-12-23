@@ -3,7 +3,7 @@ import { Heart, MessageCircle } from "lucide-react";
 import { VideoComment } from "@/hooks/Video/useVideoComments";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { cn } from "@/lib/utils";
 
 type CommentItemProps = {
@@ -110,11 +110,12 @@ export function CommentItem({
       )}
       data-comment-id={comment.id}
     >
-      <Avatar className="h-10 w-10 flex-shrink-0">
-        <AvatarFallback className="text-sm font-medium bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
+      {comment.username && (
+        <UserAvatar
+          username={comment.username}
+          size="md"
+        />
+      )}
 
       <div className="flex-1 space-y-2">
         <div>
@@ -172,11 +173,12 @@ export function CommentItem({
         {isReplying && (
           <div className="mt-3 space-y-3">
             <div className="flex items-start gap-3">
-              <Avatar className="h-9 w-9 flex-shrink-0">
-                <AvatarFallback className="text-xs font-medium bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              {comment.username && (
+                <UserAvatar
+                  username={comment.username}
+                  size="sm"
+                />
+              )}
               <div className="flex-1 space-y-2">
                 <Textarea
                   placeholder={`Reply to @${comment.username}...`}

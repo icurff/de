@@ -106,7 +106,10 @@ export function Header() {
                     <User className="h-4 w-4" />
                     My Channel
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2">
+                  <DropdownMenuItem 
+                    className="gap-2"
+                    onClick={() => navigate("/settings")}
+                  >
                     <Settings className="h-4 w-4" />
                     Settings
                   </DropdownMenuItem>

@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
+import { ImageUpload } from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import axios from "@/config/CustomAxios";
 import { toast } from "sonner";
+import { useUploadLivestreamThumbnail } from "@/hooks/Livestream/useUploadLivestreamThumbnail";
+import { useToast } from "@/hooks/use-toast";
 import {
   Eye,
   EyeOff,
@@ -29,6 +33,7 @@ interface LiveStream {
   isLive: boolean;
   streamEndpoint?: string;
   rtmpUrl?: string;
+  currentLivestreamId?: string;
 }
 
 const LiveSetupPage = () => {
@@ -36,10 +41,13 @@ const LiveSetupPage = () => {
   const [stream, setStream] = useState<LiveStream | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const flvPlayerRef = useRef<flvjs.Player | null>(null);
+  const { mutateAsync: uploadThumbnail, isPending: isUploadingThumbnail } = useUploadLivestreamThumbnail();
+  const { toast: toastHook } = useToast();
 
   const fetchStreamInfo = useCallback(async () => {
     try {
@@ -50,6 +58,16 @@ const LiveSetupPage = () => {
       }));
       setTitle(response.data.title || "");
       setDescription(response.data.description || "");
+      
+      // If there's a current livestream, fetch its thumbnail
+      if (response.data.currentLivestreamId) {
+        try {
+          const livestreamRes = await axios.get(`/api/livestream/${response.data.currentLivestreamId}`);
+          setThumbnailUrl(livestreamRes.data.thumbnail || "");
+        } catch (e) {
+          // Ignore if livestream not found
+        }
+      }
     } catch (error) {
       console.error("Failed to fetch stream info", error);
     }
@@ -323,6 +341,44 @@ const LiveSetupPage = () => {
                   </Button>
                 </CardContent>
               </Card>
+
+              {/* Thumbnail Upload Card - Only show if live */}
+              {stream?.isLive && stream?.currentLivestreamId && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Thumbnail</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ImageUpload
+                      currentImageUrl={thumbnailUrl}
+                      onImageSelect={async (file) => {
+                        if (!stream?.currentLivestreamId) return;
+                        try {
+                          const updated = await uploadThumbnail({ 
+                            livestreamId: stream.currentLivestreamId, 
+                            file 
+                          });
+                          setThumbnailUrl(updated.thumbnail);
+                          toastHook({
+                            title: "Thành công",
+                            description: "Đã tải lên thumbnail mới.",
+                          });
+                        } catch (error: any) {
+                          const message = error?.response?.data?.error || error?.message || "Tải lên thất bại";
+                          toastHook({
+                            title: "Tải lên thất bại",
+                            description: message,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      isLoading={isUploadingThumbnail}
+                      maxSizeMB={5}
+                      previewClassName="w-full h-48"
+                    />
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Connection Info Card */}
               <Card>

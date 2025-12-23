@@ -8,6 +8,8 @@ import AdminUsersPage from "@/routes/AdminUserPage";
 import AdminServerPage from "@/routes/AdminServerPage";
 import PlayVideoPage from "@/routes/PlayVideoPage";
 import ManageVideoPage from "@/routes/ManageVideoPage";
+import ManageLivestreamPage from "@/routes/ManageLivestreamPage";
+import SettingsPage from "@/routes/SettingsPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LivestreamPage from "./LiveSteamPage";
 import LiveSetupPage from "./LiveSetupPage";
@@ -46,6 +48,14 @@ const router = createBrowserRouter([
   {
     path: "/manage/videos/:videoId",
     element: <ManageVideoPage />,
+  },
+  {
+    path: "/manage/livestreams/:livestreamId",
+    element: <ManageLivestreamPage />,
+  },
+  {
+    path: "/settings",
+    element: <SettingsPage />,
   },
   {
     path: "/admin",

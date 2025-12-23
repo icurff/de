@@ -3,7 +3,7 @@ import { useGetVideo } from "@/hooks/Video/useGetVideo";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Loader2, ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -64,14 +64,6 @@ const PlayVideoPage = () => {
     );
   }
 
-  const getUserInitials = (username: string) => {
-    return username
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,14 +86,11 @@ const PlayVideoPage = () => {
         <div className="flex items-start justify-between gap-4 mb-3">
           {/* Channel Info */}
           <div className="flex items-center gap-3">
-            <Avatar 
-              className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity"
+            <UserAvatar
+              username={video.username}
+              size="md"
               onClick={() => navigate(`/@${video.username}`)}
-            >
-              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white font-semibold">
-                {getUserInitials(video.username)}
-              </AvatarFallback>
-            </Avatar>
+            />
             <div 
               className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate(`/@${video.username}`)}

@@ -8,6 +8,7 @@ import com.example.demo.repository.LivestreamRepository;
 import com.example.demo.util.FFmpegUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,9 @@ public class LivestreamService {
 
     @Value("${icurff.app.storage:storage}")
     private String storageBaseDir;
+
+    @Autowired
+    private SupabaseImageService supabaseImageService;
 
     public boolean handlePublish(String streamKey) {
         return liveStreamKeyRepository.findByStreamKey(streamKey)
@@ -112,6 +116,46 @@ public class LivestreamService {
             }
             livestream.setDvrPath(outputPath.toString());
             livestream.setDuration(duration);
+
+            // Generate and upload thumbnail for livestream
+            try {
+                Path thumbnailPath = outputPath.getParent().resolve("thumbnail.jpg");
+                double thumbnailSecond = 1.0;
+                if (duration > 0) {
+                    double midPoint = duration / 2.0;
+                    double maxAllowed = Math.max(duration - 1, 0.5);
+                    thumbnailSecond = Math.max(0.5, Math.min(midPoint, maxAllowed));
+                }
+
+                FFmpegUtil.generateThumbnail(outputPath.toString(), thumbnailPath.toString(), thumbnailSecond);
+
+                // Upload thumbnail to Supabase
+                String thumbnailUrl;
+                try {
+                    String thumbnailFileName = livestreamId + "_thumbnail.jpg";
+                    String folder = "thumbnails/livestreams/" + key.getUsername();
+                    thumbnailUrl = supabaseImageService.uploadImageFromPath(thumbnailPath, folder, thumbnailFileName);
+                    log.info("Thumbnail uploaded to Supabase for livestream {}: {}", livestreamId, thumbnailUrl);
+                    
+                    // Optionally delete local thumbnail after upload
+                    Files.deleteIfExists(thumbnailPath);
+                } catch (Exception e) {
+                    log.error("Failed to upload thumbnail to Supabase for livestream {}: {}", livestreamId, e.getMessage());
+                    // Fallback to local URL if Supabase upload fails
+                    String normalizedServer = serverLocation;
+                    if (!normalizedServer.startsWith("http://") && !normalizedServer.startsWith("https://")) {
+                        normalizedServer = "http://" + normalizedServer;
+                    }
+                    thumbnailUrl = normalizedServer + "/livestreams/" + key.getUsername() + "/" + livestreamId + "/thumbnail.jpg";
+                }
+
+                livestream.setThumbnail(thumbnailUrl);
+            } catch (Exception e) {
+                log.error("Failed to generate thumbnail for livestream {}: {}", livestreamId, e.getMessage());
+                // Set empty thumbnail if generation fails
+                livestream.setThumbnail("");
+            }
+
             livestreamRepository.save(livestream);
         } catch (IOException e) {
             log.error("Error handling DVR for stream key: {}", streamKey, e);

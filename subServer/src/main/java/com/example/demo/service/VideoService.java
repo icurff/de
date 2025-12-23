@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +22,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class VideoService {
 
@@ -38,6 +40,9 @@ public class VideoService {
 
     @Autowired
     private TaskPublisherService taskPublisherService;
+
+    @Autowired
+    private SupabaseImageService supabaseImageService;
 
 
     public String addNewVideo(String username, String title, Integer duration) {
@@ -126,18 +131,33 @@ public class VideoService {
         try {
             FFmpegUtil.generateThumbnail(outputVideoPath.toAbsolutePath().toString(), thumbnailPath.toAbsolutePath().toString(), thumbnailSecond);
 
-            videoRepository.findById(vidId).ifPresent(video -> {
+            // Upload thumbnail to Supabase
+            String thumbnailUrl = null;
+            try {
+                String thumbnailFileName = vidId + "_thumbnail.jpg";
+                String folder = "thumbnails/videos/" + username;
+                thumbnailUrl = supabaseImageService.uploadImageFromPath(thumbnailPath, folder, thumbnailFileName);
+                log.info("Thumbnail uploaded to Supabase for video {}: {}", vidId, thumbnailUrl);
+                
+                // Optionally delete local thumbnail after upload
+                Files.deleteIfExists(thumbnailPath);
+            } catch (Exception e) {
+                log.error("Failed to upload thumbnail to Supabase for video {}: {}", vidId, e.getMessage());
+                // Fallback to local URL if Supabase upload fails
                 String normalizedServer = serverLocation;
                 if (!normalizedServer.startsWith("http://") && !normalizedServer.startsWith("https://")) {
                     normalizedServer = "http://" + normalizedServer;
                 }
+                thumbnailUrl = normalizedServer + "/videos/" + username + "/" + vidId + "/thumbnail.jpg";
+            }
 
-                String thumbnailUrl = normalizedServer + "/videos/" + username + "/" + vidId + "/thumbnail.jpg";
-                video.setThumbnail(thumbnailUrl);
+            final String finalThumbnailUrl = thumbnailUrl;
+            videoRepository.findById(vidId).ifPresent(video -> {
+                video.setThumbnail(finalThumbnailUrl);
                 videoRepository.save(video);
             });
         } catch (Exception e) {
-            System.err.println("Failed to generate thumbnail for video " + vidId + ": " + e.getMessage());
+            log.error("Failed to generate thumbnail for video {}: {}", vidId, e.getMessage());
         }
 
         int width = resolution[0];

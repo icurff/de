@@ -13,6 +13,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,6 +31,9 @@ public class VideoService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private SupabaseImageService supabaseImageService;
 
     public Video getVideoById(String videoId) {
         return videoRepository.findById(videoId)
@@ -129,6 +135,48 @@ public class VideoService {
 
     private boolean isOwner(Video video, String requesterUsername) {
         return requesterUsername != null && requesterUsername.equals(video.getUsername());
+    }
+
+    public Video updateVideoThumbnail(String videoId, String username, MultipartFile thumbnailFile) throws IOException {
+        Video video = getVideoById(videoId);
+        if (!isOwner(video, username)) {
+            throw new AccessDeniedException("You do not have permission to update this video");
+        }
+
+        // Delete old thumbnail from Supabase if exists
+        if (video.getThumbnail() != null && !video.getThumbnail().isEmpty()) {
+            try {
+                String oldThumbnailPath = extractFilePathFromUrl(video.getThumbnail());
+                if (oldThumbnailPath != null) {
+                    supabaseImageService.deleteImage(oldThumbnailPath);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to delete old thumbnail: " + e.getMessage());
+            }
+        }
+
+        // Upload new thumbnail
+        String fileName = videoId + "_thumbnail";
+        String folder = "thumbnails/videos/" + username;
+        String thumbnailUrl = supabaseImageService.uploadImage(thumbnailFile, folder, fileName);
+        
+        video.setThumbnail(thumbnailUrl);
+        return videoRepository.save(video);
+    }
+
+    private String extractFilePathFromUrl(String url) {
+        if (url == null || !url.contains("/storage/v1/object/public/")) {
+            return null;
+        }
+        String[] parts = url.split("/storage/v1/object/public/");
+        if (parts.length < 2) {
+            return null;
+        }
+        String[] pathParts = parts[1].split("/", 2);
+        if (pathParts.length < 2) {
+            return null;
+        }
+        return pathParts[1];
     }
 
 }

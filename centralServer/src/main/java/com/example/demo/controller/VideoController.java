@@ -10,7 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
+
+import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/videos")
@@ -93,5 +97,28 @@ public class VideoController {
             @RequestParam(name = "limit", defaultValue = "50") int limit
     ) {
         return ResponseEntity.ok(videoService.getPublicVideosByUsername(username, limit));
+    }
+
+    @PostMapping("/{videoId}/thumbnail")
+    public ResponseEntity<?> uploadThumbnail(@PathVariable String videoId,
+                                            @RequestParam("file") MultipartFile file,
+                                            @AuthenticationPrincipal UserDetailsImpl user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is required"));
+        }
+
+        try {
+            Video updated = videoService.updateVideoThumbnail(videoId, user.getUsername(), file);
+            return ResponseEntity.ok(updated);
+        } catch (AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to upload thumbnail: " + e.getMessage()));
+        }
     }
 }

@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +41,7 @@ export function VideoGrid() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [pendingPrivacyId, setPendingPrivacyId] = useState<string | null>(null);
 
@@ -200,12 +202,12 @@ export function VideoGrid() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                        {/* Placeholder initials */}
-                        {"V"}
-                      </AvatarFallback>
-                    </Avatar>
+                    {user?.username && (
+                      <UserAvatar
+                        username={user.username}
+                        size="sm"
+                      />
+                    )}
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p className="font-medium text-foreground">Your video</p>
                       <p>{formatDate(video.uploadedDate)}</p>

@@ -12,9 +12,12 @@ import com.example.demo.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -209,6 +212,58 @@ public class LivestreamController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
         } catch (org.springframework.security.access.AccessDeniedException ex) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+        }
+    }
+
+    @PostMapping("/{livestreamId}/thumbnail")
+    public ResponseEntity<?> uploadThumbnail(@PathVariable String livestreamId,
+                                            @RequestParam("file") MultipartFile file,
+                                            @AuthenticationPrincipal UserDetailsImpl user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is required"));
+        }
+
+        try {
+            Livestream updated = liveStreamService.updateLivestreamThumbnail(livestreamId, user.getUsername(), file);
+            return ResponseEntity.ok(updated);
+        } catch (AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to upload thumbnail: " + e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{livestreamId}")
+    public ResponseEntity<?> updateLivestreamMetadata(@PathVariable String livestreamId,
+                                                      @RequestBody Map<String, String> payload,
+                                                      @AuthenticationPrincipal UserDetailsImpl user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+
+        try {
+            String title = payload.get("title");
+            String description = payload.get("description");
+
+            Livestream updated = liveStreamService.updateLivestreamMetadata(
+                    livestreamId,
+                    user.getUsername(),
+                    title != null ? title : "",
+                    description != null ? description : ""
+            );
+            return ResponseEntity.ok(updated);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+        } catch (AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to update livestream: " + e.getMessage()));
         }
     }
 }

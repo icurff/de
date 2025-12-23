@@ -42,4 +42,8 @@ icurff:
     storage: ${ICURFF_APP_STORAGE}
     location: ${ICURFF_APP_LOCATION}
 
+supabase:
+  url: ${SUPABASE_URL}
+  key: ${SUPABASE_KEY}
+  bucket: ${SUPABASE_BUCKET:images}
 

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Radio, Users } from "lucide-react";
 import axios from "@/config/CustomAxios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import flvjs from "flv.js";
 
 interface LiveStreamResponse {
@@ -235,17 +235,11 @@ const LivestreamPage = () => {
                 </div>
 
                 <div className="flex items-center gap-4 mt-4 p-4 bg-card rounded-lg border">
-                  <Avatar 
-                    className="h-12 w-12 cursor-pointer hover:opacity-80 transition-opacity"
+                  <UserAvatar
+                    username={stream.username}
+                    size="lg"
                     onClick={() => navigate(`/@${stream.username}`)}
-                  >
-                    <AvatarImage
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${stream.username}`}
-                    />
-                    <AvatarFallback>
-                      {stream.username.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  />
                   <div 
                     className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => navigate(`/@${stream.username}`)}

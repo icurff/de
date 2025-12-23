@@ -1,7 +1,7 @@
 import { Home, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Video } from "lucide-react";
-import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const mainNavItems = [
   { icon: Home, label: "Home", href: "/" },
@@ -9,7 +9,15 @@ const mainNavItems = [
 ];
 
 export function Sidebar() {
-  const [activeItem, setActiveItem] = useState("Home");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(href);
+  };
 
   return (
     <aside className="w-64 bg-sidebar-bg border-r min-h-screen p-4">
@@ -19,11 +27,10 @@ export function Sidebar() {
           {mainNavItems.map((item) => (
             <Button
               key={item.label}
-              variant={activeItem === item.label ? "sidebar-active" : "sidebar"}
+              variant={isActive(item.href) ? "sidebar-active" : "sidebar"}
               className="gap-3"
               onClick={() => {
-                setActiveItem(item.label);
-                window.location.href = item.href; 
+                navigate(item.href);
               }}
             >
               <item.icon className="h-5 w-5" />

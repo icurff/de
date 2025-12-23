@@ -12,6 +12,7 @@ public class UserAdminResponse {
     private String id;
     private String username;
     private String email;
+    private String avatar;
     private List<String> roles;
     private Instant createdDate;
 }

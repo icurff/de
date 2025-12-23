@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +27,7 @@ import {
 import { useGetPublicVideosByUsername } from "@/hooks/Video/useGetPublicVideosByUsername";
 import { useGetLivestreamRecordingsByUsername } from "@/hooks/Livestream/useGetLivestreamRecordingsByUsername";
 import { useGetLiveStreamByUsername } from "@/hooks/Livestream/useGetLiveStreamByUsername";
+import { useGetLivestream } from "@/hooks/Livestream/useGetLivestream";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -241,11 +242,10 @@ const UserChannelPage = () => {
         {/* Channel Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <Avatar className="h-20 w-20">
-              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white font-semibold text-2xl">
-                {getUserInitials(username)}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              username={username}
+              size="xl"
+            />
             <div>
               <h1 className="text-2xl font-bold">{username}</h1>
               <p className="text-muted-foreground">@{username}</p>
@@ -447,11 +447,10 @@ const UserChannelPage = () => {
                           </div>
 
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                {getUserInitials(username)}
-                              </AvatarFallback>
-                            </Avatar>
+                            <UserAvatar
+                              username={username}
+                              size="sm"
+                            />
                             <div className="text-xs text-muted-foreground space-y-1">
                               <p className="font-medium text-foreground">
                                 {username}
@@ -606,6 +605,17 @@ const UserChannelPage = () => {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                       <DropdownMenuItem
+                                        className="gap-2"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          navigate(`/manage/livestreams/${item.id}`);
+                                        }}
+                                      >
+                                        <Settings className="h-4 w-4" />
+                                        Chỉnh sửa
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
                                         className="gap-2 text-destructive focus:text-destructive"
                                         disabled={isDeletingLivestream}
                                         onClick={(e) => {
@@ -626,11 +636,10 @@ const UserChannelPage = () => {
                               </div>
 
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                    {getUserInitials(username)}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <UserAvatar
+                                  username={username}
+                                  size="sm"
+                                />
                                 <div className="text-xs text-muted-foreground space-y-1">
                                   <p className="font-medium text-foreground">
                                     {username}
