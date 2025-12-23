@@ -111,4 +111,9 @@ public class LivestreamService {
         livestreamRepository.delete(livestream);
     }
 
+    public Livestream getLivestreamById(String livestreamId) {
+        return livestreamRepository.findById(livestreamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Livestream not found"));
+    }
+
 }

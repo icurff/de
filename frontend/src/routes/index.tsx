@@ -1,8 +1,7 @@
 import HomePage from "@/routes/HomePage";
-import LivestreamPage from "@/routes/LivestreamPage";
-import UserLivePage from "@/routes/UserLivePage";
+
 import UserChannelPage from "@/routes/UserChannelPage";
-import PlayLivestreamPage from "@/routes/PlayLivestreamPage";
+
 import NotFoundPage from "@/routes/NotFoundPage";
 import AdminDashboardPage from "@/routes/AdminDashboardPage";
 import AdminUsersPage from "@/routes/AdminUserPage";
@@ -10,6 +9,9 @@ import AdminServerPage from "@/routes/AdminServerPage";
 import PlayVideoPage from "@/routes/PlayVideoPage";
 import ManageVideoPage from "@/routes/ManageVideoPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import LivestreamPage from "./LiveSteamPage";
+import LiveSetupPage from "./LiveSetupPage";
+import PlayLivestreamPage from "./PlayLivestreamPage";
 
 const router = createBrowserRouter([
   {
@@ -18,14 +20,14 @@ const router = createBrowserRouter([
   },
   {
     path: "/livestream",
-    element: <LivestreamPage />,
+    element: <LiveSetupPage />,
   },
   {
     // Route format: /@username/live
     // The @ is encoded as %40 in the URL
     // This must come before /:atUsername to avoid conflicts
     path: "/:atUsername/live",
-    element: <UserLivePage />,
+    element: <LivestreamPage />,
   },
   {
     // Route format: /@username

@@ -31,7 +31,7 @@ interface LiveStream {
   rtmpUrl?: string;
 }
 
-const LivestreamPage = () => {
+const LiveSetupPage = () => {
   const { user } = useAuth();
   const [stream, setStream] = useState<LiveStream | null>(null);
   const [title, setTitle] = useState("");
@@ -567,4 +567,4 @@ const LivestreamPage = () => {
   );
 };
 
-export default LivestreamPage;
+export default LiveSetupPage;

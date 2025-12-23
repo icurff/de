@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Hls from 'hls.js';
+import flvjs from 'flv.js';
 import {
   Play,
   Pause,
@@ -42,7 +43,9 @@ const YouTubeVideoPlayer: React.FC<YouTubeVideoPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const flvPlayerRef = useRef<flvjs.Player | null>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [videoType, setVideoType] = useState<'mp4' | 'hls' | 'flv' | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -71,73 +74,190 @@ const YouTubeVideoPlayer: React.FC<YouTubeVideoPlayerProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Initialize HLS
+  // Detect video type from URL
+  const detectVideoType = (url: string): 'mp4' | 'hls' | 'flv' => {
+    if (url.endsWith('.mp4') || url.includes('.mp4')) {
+      return 'mp4';
+    }
+    if (url.endsWith('.flv') || url.includes('/live/') || url.includes('.flv')) {
+      return 'flv';
+    }
+    if (url.endsWith('.m3u8') || url.includes('.m3u8')) {
+      return 'hls';
+    }
+    // Default to HLS for backward compatibility
+    return 'hls';
+  };
+
+  // Initialize video player based on type
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src) return;
 
     setIsLoading(true);
+    const type = detectVideoType(src);
+    setVideoType(type);
 
-    if (Hls.isSupported()) {
-      const hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: false,
-        backBufferLength: 90,
-        startLevel: -1,
-        capLevelToPlayerSize: false,
-        maxBufferLength: 20,
-        maxMaxBufferLength: 30,
-      });
+    // Cleanup previous players
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+    if (flvPlayerRef.current) {
+      try {
+        flvPlayerRef.current.unload();
+        flvPlayerRef.current.detachMediaElement();
+        flvPlayerRef.current.destroy();
+      } catch (e) {
+        console.error("Error cleaning up FLV player:", e);
+      }
+      flvPlayerRef.current = null;
+    }
 
-      hlsRef.current = hls;
-      hls.loadSource(src);
-      hls.attachMedia(video);
-
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        setIsLoading(false);
-        const levels = hls.levels.map((level, index) => ({
-          height: level.height || 0,
-          width: level.width || 0,
-          bitrate: level.bitrate || 0,
-          name: level.name || `${level.height}p`,
-          index: index,
-        }));
-        const sortedLevels = [...levels].sort((a, b) => b.height - a.height);
-        setAvailableLevels(sortedLevels);
-        setCurrentLevel(hls.currentLevel);
-        onLevelsChange?.(sortedLevels);
-      });
-
-      hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
-        setCurrentLevel(data.level);
-        onLevelChange?.(data.level);
-      });
-
-      hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              hls.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              hls.recoverMediaError();
-              break;
-            default:
-              hls.destroy();
-              break;
-          }
-        }
-      });
-
-      return () => {
-        hls.destroy();
-      };
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    if (type === 'mp4') {
+      // MP4 - use native HTML5 video
       video.src = src;
       video.addEventListener('loadedmetadata', () => {
         setIsLoading(false);
       });
+      video.addEventListener('error', () => {
+        setIsLoading(false);
+        console.error('Error loading MP4 video');
+      });
+    } else if (type === 'flv') {
+      // FLV - use flv.js
+      if (!flvjs.isSupported()) {
+        console.warn("FLV.js is not supported in this browser");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const player = flvjs.createPlayer(
+          {
+            type: "flv",
+            url: src,
+            isLive: true,
+            hasAudio: true,
+            hasVideo: true,
+            cors: true,
+          },
+          {
+            enableWorker: false,
+            enableStashBuffer: false,
+            stashInitialSize: 128,
+            lazyLoad: false,
+            autoCleanupSourceBuffer: true,
+          }
+        );
+
+        player.on(flvjs.Events.ERROR, (errorType, errorDetail, errorInfo) => {
+          console.error("FLV Player Error:", errorType, errorDetail, errorInfo);
+          setIsLoading(false);
+        });
+
+        player.on(flvjs.Events.LOADING_COMPLETE, () => {
+          console.log("FLV Loading Complete");
+          setIsLoading(false);
+        });
+
+        player.on(flvjs.Events.RECOVERED_EARLY_EOF, () => {
+          console.warn("FLV Early EOF recovered");
+        });
+
+        player.attachMediaElement(video);
+        player.load();
+
+        const playPromise = player.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.error("Error playing FLV stream:", err);
+            setIsLoading(false);
+          });
+        }
+
+        flvPlayerRef.current = player;
+      } catch (error) {
+        console.error("Error creating FLV player:", error);
+        setIsLoading(false);
+      }
+    } else {
+      // HLS - use HLS.js
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          backBufferLength: 90,
+          startLevel: -1,
+          capLevelToPlayerSize: false,
+          maxBufferLength: 20,
+          maxMaxBufferLength: 30,
+        });
+
+        hlsRef.current = hls;
+        hls.loadSource(src);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          setIsLoading(false);
+          const levels = hls.levels.map((level, index) => ({
+            height: level.height || 0,
+            width: level.width || 0,
+            bitrate: level.bitrate || 0,
+            name: level.name || `${level.height}p`,
+            index: index,
+          }));
+          const sortedLevels = [...levels].sort((a, b) => b.height - a.height);
+          setAvailableLevels(sortedLevels);
+          setCurrentLevel(hls.currentLevel);
+          onLevelsChange?.(sortedLevels);
+        });
+
+        hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
+          setCurrentLevel(data.level);
+          onLevelChange?.(data.level);
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hls.recoverMediaError();
+                break;
+              default:
+                hls.destroy();
+                setIsLoading(false);
+                break;
+            }
+          }
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = src;
+        video.addEventListener('loadedmetadata', () => {
+          setIsLoading(false);
+        });
+      }
     }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+      if (flvPlayerRef.current) {
+        try {
+          flvPlayerRef.current.unload();
+          flvPlayerRef.current.detachMediaElement();
+          flvPlayerRef.current.destroy();
+        } catch (e) {
+          console.error("Error destroying FLV player:", e);
+        }
+        flvPlayerRef.current = null;
+      }
+    };
   }, [src, onLevelsChange, onLevelChange]);
 
   // Video event listeners
@@ -329,7 +449,8 @@ const YouTubeVideoPlayer: React.FC<YouTubeVideoPlayerProps> = ({
   };
 
   const handleQualityChange = (levelIndex: number) => {
-    if (!hlsRef.current || !videoRef.current) return;
+    // Only support quality change for HLS
+    if (videoType !== 'hls' || !hlsRef.current || !videoRef.current) return;
 
     const hls = hlsRef.current;
     const wasPlaying = !videoRef.current.paused;
@@ -535,8 +656,8 @@ const YouTubeVideoPlayer: React.FC<YouTubeVideoPlayerProps> = ({
           {/* Main Settings View */}
           {settingsView === 'main' && (
             <div className="py-2">
-              {/* Quality Option */}
-              {availableLevels.length > 0 && (
+              {/* Quality Option - Only for HLS */}
+              {videoType === 'hls' && availableLevels.length > 0 && (
                 <button
                   onClick={() => setSettingsView('quality')}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/10 transition-colors"

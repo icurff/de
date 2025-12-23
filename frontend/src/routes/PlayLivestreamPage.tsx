@@ -7,12 +7,24 @@ import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import { useState, useEffect } from "react";
 import YouTubeVideoPlayer from "@/components/YouTubeVideoPlayer";
 import axios from "@/config/CustomAxios";
+import { VideoCommentsSection } from "@/components/VideoComments/VideoCommentsSection";
+
+type Livestream = {
+  id: string;
+  username: string;
+  title: string;
+  description?: string;
+  thumbnail?: string;
+  dvrPath?: string;
+  uploadedDate: string;
+  serverLocation?: string;
+};
 
 const PlayLivestreamPage = () => {
   const { livestreamId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [livestream, setLivestream] = useState<any>(null);
+  const [livestream, setLivestream] = useState<Livestream | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,14 +51,14 @@ const PlayLivestreamPage = () => {
 
   const getVideoUrl = () => {
     if (!livestream?.dvrPath) return "";
-    
+
     const dvrPath = livestream.dvrPath;
-    
+
     // If it's already a URL, return it
     if (dvrPath.startsWith("http://") || dvrPath.startsWith("https://")) {
       return dvrPath;
     }
-    
+
     // Construct URL from server location
     // DVR files are stored in: /storage/outputs/username/livestreams/livestreamId/file.mp4
     // They should be served via: http://serverLocation/livestreams/username/livestreamId/file.mp4
@@ -56,12 +68,14 @@ const PlayLivestreamPage = () => {
       baseUrl = `http://${baseUrl}`;
     }
     baseUrl = baseUrl.replace(/\/$/, "");
-    
+
     // Extract filename from dvrPath
     // dvrPath format: /storage/outputs/username/livestreams/livestreamId/file.mp4
     // We need: /livestreams/username/livestreamId/file.mp4
     const pathParts = dvrPath.split("/");
-    const livestreamsIndex = pathParts.findIndex((part) => part === "livestreams");
+    const livestreamsIndex = pathParts.findIndex(
+      (part) => part === "livestreams"
+    );
     if (livestreamsIndex >= 0) {
       // Get username (the part before "livestreams")
       const username = pathParts[livestreamsIndex - 1];
@@ -69,7 +83,7 @@ const PlayLivestreamPage = () => {
       const afterLivestreams = pathParts.slice(livestreamsIndex + 1).join("/");
       return `${baseUrl}/livestreams/${username}/${afterLivestreams}`;
     }
-    
+
     // Fallback: try to construct path manually
     const fileName = pathParts[pathParts.length - 1];
     return `${baseUrl}/livestreams/${livestream.username}/${livestreamId}/${fileName}`;
@@ -144,7 +158,7 @@ const PlayLivestreamPage = () => {
         <div className="flex items-start justify-between gap-4 mb-3">
           {/* Channel Info */}
           <div className="flex items-center gap-3">
-            <Avatar 
+            <Avatar
               className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate(`/@${livestream.username}`)}
             >
@@ -152,11 +166,13 @@ const PlayLivestreamPage = () => {
                 {getUserInitials(livestream.username)}
               </AvatarFallback>
             </Avatar>
-            <div 
+            <div
               className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => navigate(`/@${livestream.username}`)}
             >
-              <span className="font-semibold text-sm">{livestream.username}</span>
+              <span className="font-semibold text-sm">
+                {livestream.username}
+              </span>
               <span className="text-xs text-muted-foreground">
                 {new Date(livestream.uploadedDate).toLocaleDateString("vi-VN")}
               </span>
@@ -170,11 +186,6 @@ const PlayLivestreamPage = () => {
             </Button>
           </div>
 
-          {/* Badge */}
-          <Badge variant="destructive" className="uppercase flex items-center gap-1">
-            <Radio className="h-3 w-3" />
-            Livestream
-          </Badge>
         </div>
 
         {/* Description */}
@@ -185,10 +196,14 @@ const PlayLivestreamPage = () => {
             </p>
           </div>
         )}
+
+        {/* Comments Section */}
+        <div>
+          <VideoCommentsSection videoId={livestream.id} />
+        </div>
       </div>
     </div>
   );
 };
 
 export default PlayLivestreamPage;
-

@@ -20,7 +20,7 @@ interface LiveStreamResponse {
   message?: string;
 }
 
-const UserLivePage = () => {
+const LivestreamPage = () => {
   const { atUsername } = useParams();
   const navigate = useNavigate();
   // Remove @ prefix if present (route is /:atUsername/live, URL is /@username/live)
@@ -296,4 +296,4 @@ const UserLivePage = () => {
   );
 };
 
-export default UserLivePage;
+export default LivestreamPage;

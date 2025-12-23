@@ -26,14 +26,16 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final VideoService videoService;
+    private final LivestreamService livestreamService;
 
     private static final Sort TOP_LEVEL_SORT = Sort.by(Sort.Direction.DESC, "createdAt");
     private static final Sort REPLY_SORT = Sort.by(Sort.Direction.ASC, "createdAt");
 
     @Autowired
-    public CommentService(CommentRepository commentRepository, VideoService videoService) {
+    public CommentService(CommentRepository commentRepository, VideoService videoService, LivestreamService livestreamService) {
         this.commentRepository = commentRepository;
         this.videoService = videoService;
+        this.livestreamService = livestreamService;
     }
 
     public CommentPageResponse getCommentsForVideo(String videoId, UserDetailsImpl currentUser, int page, int size) {
@@ -62,8 +64,17 @@ public class CommentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nội dung bình luận không được để trống");
         }
 
-        // Ensure video exists
-        videoService.getVideoById(videoId);
+        // Ensure video or livestream exists
+        try {
+            videoService.getVideoById(videoId);
+        } catch (ResourceNotFoundException e) {
+            // If not a video, try to find as livestream
+            try {
+                livestreamService.getLivestreamById(videoId);
+            } catch (ResourceNotFoundException ex) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Video or livestream not found");
+            }
+        }
 
         Comment parentComment = null;
         if (StringUtils.hasText(request.getParentCommentId())) {
