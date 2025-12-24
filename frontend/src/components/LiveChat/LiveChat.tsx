@@ -71,7 +71,7 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
     } else {
       // Relative path: sử dụng window.location
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = window.location.host+"8080";
+      const host = window.location.host+":8080";
       wsUrl = `${protocol}//${host}${apiUrl}/ws/chat`;
     }
     
