@@ -21,7 +21,7 @@ public class MonitoringTask {
     private ServerService serverService;
 
     // Chạy sau 5s và lặp lại mỗi 60s
-    @Scheduled(fixedDelay = 60 * 1000, initialDelay = 5 * 1000)
+    @Scheduled(fixedDelay = 10 * 1000, initialDelay = 5 * 1000)
     public void monitorTask() {
         List<Server> servers = serverService.getAllServers();
 
