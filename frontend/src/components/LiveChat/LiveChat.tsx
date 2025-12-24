@@ -67,12 +67,29 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
     let wsUrl: string;
     if (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")) {
       // Absolute URL: chuyển http/https thành ws/wss
-     wsUrl = apiUrl.replace(/\/+$/, "").replace(/^https?/, "ws") + "/ws/chat";
+      try {
+        const url = new URL(apiUrl);
+        const protocol = url.protocol === "https:" ? "wss:" : "ws:";
+        // Remove trailing slashes from pathname, then ensure proper path construction
+        const pathname = url.pathname.replace(/\/+$/, "");
+        // If pathname is empty or just "/", start fresh with "/ws/chat"
+        // Otherwise, ensure single slash between pathname and "/ws/chat"
+        if (!pathname || pathname === "/") {
+          wsUrl = `${protocol}//${url.host}/ws/chat`;
+        } else {
+          wsUrl = `${protocol}//${url.host}${pathname}/ws/chat`;
+        }
+      } catch (e) {
+        // Fallback to string replacement if URL parsing fails
+        const cleanUrl = apiUrl.replace(/\/+$/, "");
+        wsUrl = cleanUrl.replace(/^https?/, "ws") + "/ws/chat";
+      }
     } else {
       // Relative path: sử dụng window.location
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
       const host = window.location.host+":8080";
-      wsUrl = `${protocol}//${host}${apiUrl}/ws/chat`;
+      const cleanApiUrl = apiUrl.replace(/^\/+|\/+$/g, ""); // Remove leading and trailing slashes
+      wsUrl = `${protocol}//${host}/${cleanApiUrl ? cleanApiUrl + "/" : ""}ws/chat`;
     }
     
     const token = accessToken.getAccessToken();
