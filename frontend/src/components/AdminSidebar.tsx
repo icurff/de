@@ -1,41 +1,43 @@
 import { Home, Users, Server, BarChart3 } from "lucide-react";
-import { NavLink } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: Home },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Servers", href: "/admin/servers", icon: Server },
-  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  // { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 ];
 
 export function AdminSidebar() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isActive = (href: string) => {
+    if (href === "/admin") {
+      return location.pathname === "/admin";
+    }
+    return location.pathname.startsWith(href);
+  };
+
   return (
-    <div className="flex h-screen w-64 flex-col border-r border-border bg-card">
-      <div className="flex h-16 items-center border-b border-border px-6">
-        <h1 className="text-xl font-semibold text-foreground">Admin Portal</h1>
-      </div>
-      
-      <nav className="flex-1 space-y-1 px-3 py-4">
+    <aside className="w-64 bg-sidebar-bg border-r min-h-screen p-4">
+      <div className="space-y-2">
+        <div className="px-3 py-2 mb-4">
+          <h1 className="text-lg font-semibold text-foreground">Admin Portal</h1>
+        </div>
         {navigation.map((item) => (
-          <NavLink
+          <Button
             key={item.name}
-            to={item.href}
-            end={item.href === "/admin"}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-secondary text-foreground"
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-              )
-            }
+            variant={isActive(item.href) ? "sidebar-active" : "sidebar"}
+            className="gap-3 w-full justify-start"
+            onClick={() => navigate(item.href)}
           >
             <item.icon className="h-5 w-5" />
             {item.name}
-          </NavLink>
+          </Button>
         ))}
-      </nav>
-    </div>
+      </div>
+    </aside>
   );
 }

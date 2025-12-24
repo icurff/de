@@ -46,7 +46,7 @@ export function CommentItem({
       return comment.createdAt;
     }
 
-    const rtf = new Intl.RelativeTimeFormat("vi", { numeric: "auto" });
+    const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
     const secondsElapsed = Math.floor((Date.now() - created.getTime()) / 1000);
 
     const divisions: Array<{ amount: number; unit: Intl.RelativeTimeFormatUnit }> = [
@@ -223,7 +223,7 @@ export function CommentItem({
               onClick={() => setShowReplies(!showReplies)}
               className="h-auto px-3 py-1.5 hover:bg-primary/10 text-primary font-semibold text-sm mb-3 flex items-center gap-2 rounded-full"
             >
-              <span className="text-xs">{showReplies ? "▼" : "▶"}</span>
+              <span className="text-xs">{showReplies ? "▼" : "->"}</span>
               {comment.replies.length} {comment.replies.length === 1 ? "reply" : "replies"}
             </Button>
             {showReplies && (

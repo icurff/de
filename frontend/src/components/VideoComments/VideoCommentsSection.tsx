@@ -84,7 +84,7 @@ export function VideoCommentsSection({ videoId }: VideoCommentsSectionProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Không thể gửi bình luận",
+        title: "Unable to post comment",
         description: resolveErrorMessage(error),
       });
     }
@@ -96,7 +96,7 @@ export function VideoCommentsSection({ videoId }: VideoCommentsSectionProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Không thể gửi trả lời",
+        title: "Unable to post reply",
         description: resolveErrorMessage(error),
       });
     }
@@ -108,7 +108,7 @@ export function VideoCommentsSection({ videoId }: VideoCommentsSectionProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Không thể cập nhật lượt thích",
+        title: "Unable to update like",
         description: resolveErrorMessage(error),
       });
     }

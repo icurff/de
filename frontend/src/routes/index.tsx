@@ -10,6 +10,10 @@ import PlayVideoPage from "@/routes/PlayVideoPage";
 import ManageVideoPage from "@/routes/ManageVideoPage";
 import ManageLivestreamPage from "@/routes/ManageLivestreamPage";
 import SettingsPage from "@/routes/SettingsPage";
+import SubscriptionsPage from "@/routes/SubscriptionsPage";
+import FeedPage from "@/routes/FeedPage";
+import HistoryPage from "@/routes/HistoryPage";
+import LikedVideosPage from "@/routes/LikedVideosPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import LiveSetupPage from "./LiveSetupPage";
 import PlayLivestreamPage from "./PlayLivestreamPage";
@@ -21,8 +25,24 @@ const router = createBrowserRouter([
     element: <HomePage />,
   },
   {
+    path: "/feed",
+    element: <FeedPage />,
+  },
+  {
     path: "/livestream",
     element: <LiveSetupPage />,
+  },
+  {
+    path: "/subscriptions",
+    element: <SubscriptionsPage />,
+  },
+  {
+    path: "/history",
+    element: <HistoryPage />,
+  },
+  {
+    path: "/liked-videos",
+    element: <LikedVideosPage />,
   },
   {
     // Route format: /@username/live

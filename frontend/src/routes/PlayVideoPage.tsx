@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetVideo } from "@/hooks/Video/useGetVideo";
+import { useGetLikeInfo } from "@/hooks/useGetLikeInfo";
+import { useToggleLike } from "@/hooks/useToggleLike";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,10 +16,16 @@ const PlayVideoPage = () => {
   const { videoId } = useParams<{ videoId: string }>();
   const navigate = useNavigate();
   const { data: video, isLoading, error } = useGetVideo(videoId || "");
+  const { data: likeInfo } = useGetLikeInfo(videoId || "", "video");
+  const toggleLikeMutation = useToggleLike();
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [likes] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
+
+  const handleLikeClick = () => {
+    if (!videoId) return;
+    toggleLikeMutation.mutate({ contentId: videoId, contentType: "video" });
+    if (isDisliked) setIsDisliked(false);
+  };
 
   // Construct video source URL
   const getVideoUrl = () => {
@@ -54,10 +62,10 @@ const PlayVideoPage = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <p className="text-muted-foreground">Không tìm thấy video</p>
+          <p className="text-muted-foreground">Video not found</p>
           <Button onClick={() => navigate("/")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại trang chủ
+            Back to home
           </Button>
         </div>
       </div>
@@ -97,7 +105,7 @@ const PlayVideoPage = () => {
             >
               <span className="font-semibold text-sm">{video.username}</span>
               <span className="text-xs text-muted-foreground">
-                {new Date(video.uploadedDate).toLocaleDateString("vi-VN")}
+                {new Date(video.uploadedDate).toLocaleDateString("en-US")}
               </span>
             </div>
             <Button
@@ -116,15 +124,13 @@ const PlayVideoPage = () => {
                 variant="ghost"
                 size="sm"
                 className={`rounded-l-full hover:bg-muted-foreground/10 ${
-                  isLiked ? "text-primary" : ""
+                  likeInfo?.isLiked ? "text-primary" : ""
                 }`}
-                onClick={() => {
-                  setIsLiked(!isLiked);
-                  if (isDisliked) setIsDisliked(false);
-                }}
+                onClick={handleLikeClick}
+                disabled={toggleLikeMutation.isPending}
               >
-                <ThumbsUp className="h-5 w-5 mr-2" />
-                <span className="font-medium">{likes}</span>
+                <ThumbsUp className={`h-5 w-5 mr-2 ${likeInfo?.isLiked ? "fill-current" : ""}`} />
+                <span className="font-medium">{likeInfo?.likeCount ?? 0}</span>
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <Button
@@ -135,7 +141,6 @@ const PlayVideoPage = () => {
                 }`}
                 onClick={() => {
                   setIsDisliked(!isDisliked);
-                  if (isLiked) setIsLiked(false);
                 }}
               >
                 <ThumbsDown className="h-5 w-5" />

@@ -19,8 +19,8 @@ const SettingsPage = () => {
   const handleAvatarUpload = async (file: File) => {
     if (!user?.id) {
       toast({
-        title: "Lỗi",
-        description: "Không tìm thấy thông tin người dùng.",
+        title: "Error",
+        description: "User information not found.",
         variant: "destructive",
       });
       return;
@@ -29,13 +29,13 @@ const SettingsPage = () => {
     try {
       await uploadAvatar({ userId: String(user.id), file });
       toast({
-        title: "Thành công",
-        description: "Đã cập nhật avatar thành công.",
+        title: "Success",
+        description: "Avatar updated successfully.",
       });
     } catch (error: any) {
-      const message = error?.response?.data?.error || error?.message || "Tải lên thất bại";
+      const message = error?.response?.data?.error || error?.message || "Upload failed";
       toast({
-        title: "Tải lên thất bại",
+        title: "Upload failed",
         description: message,
         variant: "destructive",
       });
@@ -72,9 +72,9 @@ const SettingsPage = () => {
           {/* Avatar Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Ảnh đại diện</CardTitle>
+              <CardTitle>Avatar</CardTitle>
               <CardDescription>
-                Cập nhật ảnh đại diện của bạn. Ảnh sẽ được hiển thị trên hồ sơ và các video của bạn.
+                Update your avatar. It will be displayed on your profile and videos.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -92,9 +92,9 @@ const SettingsPage = () => {
           {/* Account Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Thông tin tài khoản</CardTitle>
+              <CardTitle>Account Information</CardTitle>
               <CardDescription>
-                Quản lý thông tin tài khoản của bạn
+                Manage your account information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

@@ -8,4 +8,5 @@ public interface LivestreamKeyRepository extends MongoRepository<LivestreamKey, 
     Optional<LivestreamKey> findByUserId(String userId);
     Optional<LivestreamKey> findByUsername(String username);
     Optional<LivestreamKey> findByStreamKey(String streamKey);
+    long countByIsLive(boolean isLive);
 }

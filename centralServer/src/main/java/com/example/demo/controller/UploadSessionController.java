@@ -28,22 +28,30 @@ public class UploadSessionController {
     @Autowired
     private LoadBalancingService loadBalancingService;
 
+    @Autowired
+    private com.example.demo.service.ActivityLogService activityLogService;
+
 
     @PostMapping("/sessions")
     public ResponseEntity<?> createUploadSession(@Valid @RequestBody NewUploadSessionRequest request,
                                                  @AuthenticationPrincipal UserDetailsImpl user) {
-//  String subServerUrl = "http://localhost:8081";
-//         String sessionId = uploadSessionService.createUploadSession(request, user.getId(), subServerUrl);
-//         UploadSessionResponse response = new UploadSessionResponse(sessionId, subServerUrl);
-//         return ResponseEntity.ok(response);
-                                                    
         try {
-            // Use load balancing to select 6the best available server
+            // Use load balancing to select the best available server
             Server selectedServer = loadBalancingService.getBestAvailableServer();
             String subServerUrl = "http://" + selectedServer.getIp();
             
             String sessionId = uploadSessionService.createUploadSession(request, user.getId(), subServerUrl);
             UploadSessionResponse response = new UploadSessionResponse(sessionId, subServerUrl);
+            
+            // Log the activity
+            activityLogService.logActivity(
+                "UPLOAD_REQUEST",
+                selectedServer.getName(),
+                selectedServer.getIp(),
+                user.getUsername(),
+                "Upload request for file: " + request.getFileName()
+            );
+            
             return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException e) {
             // No servers available

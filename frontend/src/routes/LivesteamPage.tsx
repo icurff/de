@@ -3,10 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Radio, Users } from "lucide-react";
+import { ArrowLeft, Loader2, Radio } from "lucide-react";
 import axios from "@/config/CustomAxios";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserAvatar } from "@/components/UserAvatar";
+import { LiveChat } from "@/components/LiveChat/LiveChat";
 import flvjs from "flv.js";
 
 interface LiveStreamResponse {
@@ -263,26 +263,7 @@ const LivestreamPage = () => {
           </div>
 
           <aside className="h-fit space-y-4">
-            {/* Chat Section Placeholder */}
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader className="border-b py-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium">
-                    Live Chat
-                  </CardTitle>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Users className="h-3 w-3" />
-                    <span>--</span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1 flex items-center justify-center bg-muted/10">
-                <div className="text-center text-muted-foreground">
-                  <p>Chat is connecting...</p>
-                  <p className="text-xs mt-1">(Chat feature coming soon)</p>
-                </div>
-              </CardContent>
-            </Card>
+            <LiveChat streamUsername={stream.username} />
           </aside>
         </div>
       </div>

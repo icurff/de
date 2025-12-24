@@ -81,9 +81,7 @@ export default function AdminUserPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-semibold text-foreground">Users</h2>
-            <p className="text-muted-foreground">
-              Manage your application users
-            </p>
+            
           </div>
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
@@ -143,9 +141,9 @@ export default function AdminUserPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>All Users</CardTitle>
+              <CardTitle></CardTitle>
               <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search users..."
                   className="pl-10"

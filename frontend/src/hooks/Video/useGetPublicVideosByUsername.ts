@@ -10,6 +10,7 @@ export type PublicVideo = {
   uploadedDate: string;
   privacy: VideoPrivacy;
   username: string;
+  duration?: number;
 };
 
 async function fetchPublicVideosByUsername(

@@ -9,6 +9,7 @@ export type RecentVideo = {
   thumbnail: string;
   uploadedDate: string;
   privacy: VideoPrivacy;
+  duration?: number;
 };
 
 async function fetchRecentVideos(limit: number): Promise<RecentVideo[]> {

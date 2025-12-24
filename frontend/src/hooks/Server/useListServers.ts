@@ -25,9 +25,12 @@ export type AdminServerRow = {
   id: string;
   name: string;
   status: string;
-  cpu: number;
-  memory: number;
-  disk: number;
+  cpu: number; // CPU usage percentage
+  cpuCores: number; // Total CPU cores
+  memory: number; // RAM usage percentage
+  ramTotal: number; // Total RAM in GB
+  disk: number; // Disk usage percentage
+  diskTotal: number; // Total Disk in GB
   location: string;
   uptime?: string;
 };
@@ -46,8 +49,11 @@ async function fetchServers(): Promise<AdminServers> {
       name: s.name ?? s.ip ?? "Server",
       status: s.status ?? "UNKNOWN",
       cpu: Number(spec.cpu_usage ?? 0),
+      cpuCores: Number(spec.cpu ?? 0),
       memory: Number(spec.ram_usage ?? 0),
+      ramTotal: Number(spec.ram ?? 0),
       disk: Number(spec.disk_usage ?? 0),
+      diskTotal: Number(spec.disk ?? 0),
       location: s.ip ?? "-",
       uptime: s.lastModifiedDate
         ? new Date(s.lastModifiedDate).toLocaleString()

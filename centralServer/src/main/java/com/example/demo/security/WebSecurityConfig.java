@@ -65,6 +65,7 @@ public class WebSecurityConfig {
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/v3/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
+                                .requestMatchers("/ws/**").permitAll()
                                 .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
@@ -79,10 +80,8 @@ public class WebSecurityConfig {
         configuration.setAllowedOriginPatterns(List.of("*")); // Cho phép tất cả origins
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("*")); // Expose all headers in response
-        configuration.setMaxAge(3600L); // Cache preflight response for 1 hour
-        // Note: allowCredentials removed because it conflicts with wildcard origins
-        // Bearer tokens don't require credentials flag
+        configuration.setExposedHeaders(List.of("*")); 
+        configuration.setMaxAge(3600L); 
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

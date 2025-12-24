@@ -53,13 +53,13 @@ const ManageLivestreamPage = () => {
         description,
       });
       toast({
-        title: "Thành công",
-        description: "Đã cập nhật thông tin livestream thành công.",
+        title: "Success",
+        description: "Livestream information has been updated successfully.",
       });
     } catch (error: any) {
-      const message = error?.response?.data?.error || error?.message || "Cập nhật thất bại";
+      const message = error?.response?.data?.error || error?.message || "Update failed";
       toast({
-        title: "Cập nhật thất bại",
+        title: "Update failed",
         description: message,
         variant: "destructive",
       });
@@ -84,10 +84,10 @@ const ManageLivestreamPage = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <p className="text-muted-foreground">Không tìm thấy livestream</p>
+          <p className="text-muted-foreground">Livestream not found</p>
           <Button onClick={() => navigate("/")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại trang chủ
+            Back to home
           </Button>
         </div>
       </div>
@@ -99,10 +99,10 @@ const ManageLivestreamPage = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <p className="text-muted-foreground">Bạn không có quyền chỉnh sửa livestream này</p>
+          <p className="text-muted-foreground">You don't have permission to edit this livestream</p>
           <Button onClick={() => navigate("/")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại trang chủ
+            Back to home
           </Button>
         </div>
       </div>
@@ -124,7 +124,7 @@ const ManageLivestreamPage = () => {
             variant="ghost"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại
+            Back
           </Button>
           <Button
             onClick={handleSave}
@@ -133,12 +133,12 @@ const ManageLivestreamPage = () => {
             {(isSaving || isUpdatingMetadata) ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Đang lưu...
+                Saving...
               </>
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />
-                Lưu thay đổi
+                Save changes
               </>
             )}
           </Button>
@@ -214,13 +214,13 @@ const ManageLivestreamPage = () => {
                             const updated = await uploadThumbnail({ livestreamId, file });
                             setThumbnailUrl(updated.thumbnail);
                             toast({
-                              title: "Thành công",
-                              description: "Đã tải lên thumbnail mới.",
+                              title: "Success",
+                              description: "New thumbnail uploaded successfully.",
                             });
                           } catch (error: any) {
-                            const message = error?.response?.data?.error || error?.message || "Tải lên thất bại";
+                            const message = error?.response?.data?.error || error?.message || "Upload failed";
                             toast({
-                              title: "Tải lên thất bại",
+                              title: "Upload failed",
                               description: message,
                               variant: "destructive",
                             });
@@ -271,7 +271,7 @@ const ManageLivestreamPage = () => {
             {/* Livestream Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Thông tin livestream</CardTitle>
+                <CardTitle>Livestream Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -281,14 +281,14 @@ const ManageLivestreamPage = () => {
                 <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Ngày tạo:</span>
-                  <span>{new Date(livestream.uploadedDate).toLocaleDateString("vi-VN")}</span>
+                  <span>{new Date(livestream.uploadedDate).toLocaleDateString("en-US")}</span>
                 </div>
                 {livestream.lastModifiedDate && (
                   <>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Chỉnh sửa lần cuối:</span>
-                      <span>{new Date(livestream.lastModifiedDate).toLocaleDateString("vi-VN")}</span>
+                      <span className="text-muted-foreground">Last modified:</span>
+                      <span>{new Date(livestream.lastModifiedDate).toLocaleDateString("en-US")}</span>
                     </div>
                   </>
                 )}

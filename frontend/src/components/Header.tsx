@@ -43,14 +43,14 @@ export function Header() {
             </span>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar
           <div className="relative w-96">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search videos..."
               className="pl-10 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
             />
-          </div>
+          </div> */}
         </div>
 
         {/* Right Actions */}
@@ -73,13 +73,13 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative rounded-full px-2 h-9"
+                    className="relative rounded-full px-2 h-9 overflow-hidden focus-visible:ring-0 focus-visible:ring-offset-0 outline-none hover:outline-none active:outline-none"
                   >
-                    <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full">
+                    <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-full overflow-hidden">
                       <span className="text-sm font-medium">
                         {user?.name || user?.username || user?.email || "User"}
                       </span>
-                      <Avatar className="h-7 w-7">
+                      <Avatar className="h-7 w-7 overflow-hidden">
                         <AvatarImage
                           src={user?.avatar || "https://i.pravatar.cc/48?img=3"}
                           alt={

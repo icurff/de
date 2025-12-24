@@ -34,6 +34,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@/config/CustomAxios";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useSubscribe } from "@/hooks/Subscription/useSubscribe";
+import { useUnsubscribe } from "@/hooks/Subscription/useUnsubscribe";
+import { useGetSubscriptionStats } from "@/hooks/Subscription/useGetSubscriptionStats";
 
 const UserChannelPage = () => {
   const { atUsername } = useParams();
@@ -53,6 +56,7 @@ const UserChannelPage = () => {
   const { data: currentLiveStream } = useGetLiveStreamByUsername(
     username || ""
   );
+  const { data: subscriptionStats } = useGetSubscriptionStats(username);
 
   const [activeTab, setActiveTab] = useState<"videos" | "livestreams">(
     "videos"
@@ -102,7 +106,7 @@ const UserChannelPage = () => {
   const formatDate = (iso?: string) => {
     if (!iso) return "";
     const d = new Date(iso);
-    return d.toLocaleDateString("vi-VN");
+    return d.toLocaleDateString("en-US");
   };
 
   const getUserInitials = (username: string) => {
@@ -152,15 +156,15 @@ const UserChannelPage = () => {
         queryKey: ["publicVideos", username],
       });
       toast({
-        title: "Đã xoá video",
-        description: "Video đã được xoá thành công.",
+        title: "Video deleted",
+        description: "Video has been deleted successfully.",
       });
     },
     onError: (error: any) => {
       const message =
-        error?.response?.data ?? error?.message ?? "Xoá video thất bại";
+        error?.response?.data ?? error?.message ?? "Failed to delete video";
       toast({
-        title: "Xoá video thất bại",
+        title: "Failed to delete video",
         description: message,
         variant: "destructive",
       });
@@ -177,24 +181,52 @@ const UserChannelPage = () => {
           queryKey: ["livestreamRecordings", username],
         });
         toast({
-          title: "Đã xoá livestream",
-          description: "Livestream đã được xoá thành công.",
+          title: "Livestream deleted",
+          description: "Livestream has been deleted successfully.",
         });
       },
       onError: (error: any) => {
         const message =
-          error?.response?.data ?? error?.message ?? "Xoá livestream thất bại";
+          error?.response?.data ?? error?.message ?? "Failed to delete livestream";
         toast({
-          title: "Xoá livestream thất bại",
+          title: "Failed to delete livestream",
           description: message,
           variant: "destructive",
         });
       },
     });
 
+  const subscribeMutation = useSubscribe();
+  const unsubscribeMutation = useUnsubscribe();
+
+  const handleSubscribe = useCallback(async () => {
+    if (!username) return;
+    try {
+      if (subscriptionStats?.isSubscribed) {
+        await unsubscribeMutation.mutateAsync(username);
+        toast({
+          title: "Đã hủy đăng ký",
+          description: `Bạn đã hủy đăng ký kênh ${username}`,
+        });
+      } else {
+        await subscribeMutation.mutateAsync(username);
+        toast({
+          title: "Đã đăng ký",
+          description: `Bạn đã đăng ký kênh ${username}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Có lỗi xảy ra",
+        variant: "destructive",
+      });
+    }
+  }, [username, subscriptionStats?.isSubscribed, subscribeMutation, unsubscribeMutation, toast]);
+
   const handleDelete = useCallback(
     async (item: any) => {
-      const confirmed = window.confirm(`Bạn có chắc muốn xoá "${item.title}"?`);
+      const confirmed = window.confirm(`Are you sure you want to delete "${item.title}"?`);
       if (!confirmed) {
         return;
       }
@@ -217,7 +249,7 @@ const UserChannelPage = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <p className="text-muted-foreground">Không tìm thấy kênh</p>
+          <p className="text-muted-foreground">Channel not found</p>
         </div>
       </div>
     );
@@ -252,7 +284,12 @@ const UserChannelPage = () => {
               <div className="flex items-center gap-4 mt-2">
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Users className="h-4 w-4" />
-                  <span>14.3K subscribers</span>
+                  <span>
+                    {subscriptionStats?.subscriberCount !== undefined
+                      ? subscriptionStats.subscriberCount.toLocaleString("en-US")
+                      : "0"}{" "}
+                    người đăng ký
+                  </span>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Video className="h-4 w-4" />
@@ -265,7 +302,35 @@ const UserChannelPage = () => {
                 </div>
               </div>
             </div>
-            <Button className="ml-auto rounded-full">Visit channel</Button>
+            {!isOwner && (
+              <Button
+                className="ml-auto rounded-full"
+                onClick={handleSubscribe}
+                disabled={
+                  subscribeMutation.isPending || unsubscribeMutation.isPending
+                }
+                variant={
+                  subscriptionStats?.isSubscribed ? "outline" : "default"
+                }
+              >
+                {subscribeMutation.isPending || unsubscribeMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Đang xử lý...
+                  </>
+                ) : subscriptionStats?.isSubscribed ? (
+                  "Đã đăng ký"
+                ) : (
+                  "Đăng ký"
+                )}
+              </Button>
+            )}
+            {/* {isOwner && (
+              <Button className="ml-auto rounded-full" variant="outline">
+                <Settings className="h-4 w-4 mr-2" />
+                Manage channel
+              </Button>
+            )} */}
           </div>
         </div>
 
@@ -349,12 +414,12 @@ const UserChannelPage = () => {
               </div>
             ) : !Array.isArray(videos) || videos.length === 0 ? (
               <div className="flex items-center justify-center min-h-[40vh]">
-                <p className="text-muted-foreground">Chưa có video nào</p>
+                <p className="text-muted-foreground">No videos yet</p>
               </div>
             ) : filterItems(videos).length === 0 ? (
               <div className="flex items-center justify-center min-h-[40vh]">
                 <p className="text-muted-foreground">
-                  Không tìm thấy video nào với từ khóa "{searchQuery}"
+                  No videos found with keyword "{searchQuery}"
                 </p>
               </div>
             ) : (
@@ -392,6 +457,12 @@ const UserChannelPage = () => {
                               <Play className="h-6 w-6" />
                             </Button>
                           </div>
+                          {item.duration && item.duration > 0 && (
+                            <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {formatDuration(item.duration)}
+                            </div>
+                          )}
                         </div>
 
                         {/* Content */}
@@ -424,7 +495,7 @@ const UserChannelPage = () => {
                                     }}
                                   >
                                     <Settings className="h-4 w-4" />
-                                    Chỉnh sửa
+                                    Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="gap-2 text-destructive focus:text-destructive"
@@ -510,8 +581,8 @@ const UserChannelPage = () => {
                     <div className="flex items-center justify-center min-h-[40vh]">
                       <p className="text-muted-foreground">
                         {searchQuery
-                          ? `Không tìm thấy livestream nào với từ khóa "${searchQuery}"`
-                          : "Chưa có livestream nào"}
+                          ? `No livestreams found with keyword "${searchQuery}"`
+                          : "No livestreams yet"}
                       </p>
                     </div>
                   );
@@ -613,7 +684,7 @@ const UserChannelPage = () => {
                                         }}
                                       >
                                         <Settings className="h-4 w-4" />
-                                        Chỉnh sửa
+                                        Edit
                                       </DropdownMenuItem>
                                       <DropdownMenuItem
                                         className="gap-2 text-destructive focus:text-destructive"

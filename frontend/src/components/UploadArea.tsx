@@ -177,16 +177,12 @@ export function UploadArea() {
                 <Upload className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Drop files to upload</h3>
-              <p className="text-muted-foreground mb-6">
-                Privacy is set to <span className="font-medium">Public</span> until you change it
-              </p>
+              
               <Button variant="upload" className="gap-2" onClick={handleSelectClick}>
                 <FileVideo className="h-4 w-4" />
                 Select files
               </Button>
-              <p className="text-xs text-muted-foreground mt-4">
-                Supported formats: MP4, MOV, AVI, WMV (Max 2GB)
-              </p>
+              
               <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={onFileChange} />
             </>
           )}

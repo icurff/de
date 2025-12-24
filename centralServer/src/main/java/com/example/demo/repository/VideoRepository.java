@@ -9,5 +9,6 @@ import java.util.List;
 public interface VideoRepository extends MongoRepository<Video,String> {
     List<Video> findByUsernameOrderByUploadedDateDesc(String userId, Pageable pageable);
     List<Video> findByUsernameAndPrivacyOrderByUploadedDateDesc(String username, EVideoPrivacy privacy, Pageable pageable);
+    List<Video> findByPrivacyOrderByUploadedDateDesc(EVideoPrivacy privacy, Pageable pageable);
 }
 

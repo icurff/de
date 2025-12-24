@@ -1,12 +1,8 @@
 import {
   Play,
   MoreVertical,
-  Heart,
-  Share,
   Clock,
   Trash,
-  Lock,
-  Globe,
   Settings,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +13,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useListRecentVideos } from "@/hooks/Video/useListRecentVideos";
@@ -26,7 +21,6 @@ import { useCallback, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@/config/CustomAxios";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 import { useUpdateVideoPrivacy } from "@/hooks/Video/useUpdateVideoPrivacy";
 import { type VideoPrivacy } from "@/types/video";
 
@@ -34,6 +28,19 @@ function formatDate(iso?: string) {
   if (!iso) return "";
   const d = new Date(iso);
   return d.toLocaleDateString();
+}
+
+function formatDuration(seconds?: number) {
+  if (!seconds) return "";
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  }
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
 export function VideoGrid() {
@@ -59,7 +66,7 @@ export function VideoGrid() {
   const handleDelete = useCallback(
     async (videoId: string, title: string) => {
       const confirmed = window.confirm(
-        `Bạn có chắc muốn xoá video "${title}"?`
+        `Are you sure you want to delete video "${title}"?`
       );
       if (!confirmed) {
         return;
@@ -69,14 +76,14 @@ export function VideoGrid() {
         setPendingDeleteId(videoId);
         await deleteVideo(videoId);
         toast({
-          title: "Đã xoá video",
-          description: `Video "${title}" đã được xoá.`,
+          title: "Video deleted",
+          description: `Video "${title}" has been deleted.`,
         });
       } catch (error: any) {
         const message =
-          error?.response?.data ?? error?.message ?? "Xoá video thất bại";
+          error?.response?.data ?? error?.message ?? "Failed to delete video";
         toast({
-          title: "Xoá video thất bại",
+          title: "Failed to delete video",
           description: message,
           variant: "destructive",
         });
@@ -93,9 +100,6 @@ export function VideoGrid() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Recent uploads</h2>
-        <Button variant="ghost" className="text-primary hover:text-primary/80">
-          View all
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -124,18 +128,6 @@ export function VideoGrid() {
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
                   />
-                  <div className="absolute top-2 left-2">
-                    <Badge
-                      variant={
-                        video.privacy === "PRIVATE"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                      className="uppercase"
-                    >
-                      {video.privacy === "PRIVATE" ? "Riêng tư" : "Công khai"}
-                    </Badge>
-                  </div>
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                     <Button
                       size="icon"
@@ -148,10 +140,12 @@ export function VideoGrid() {
                       <Play className="h-6 w-6" />
                     </Button>
                   </div>
-                  <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {/* duration not available yet */}
-                  </div>
+                  {video.duration && video.duration > 0 && (
+                    <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatDuration(video.duration)}
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}
@@ -180,7 +174,7 @@ export function VideoGrid() {
                           }}
                         >
                           <Settings className="h-4 w-4" />
-                          Quản lý video
+                          Manage video
                         </DropdownMenuItem>
 
                         <DropdownMenuItem

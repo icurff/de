@@ -1,13 +1,15 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { UserAvatar } from "@/components/UserAvatar";
-import { ArrowLeft, Loader2, Radio } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Loader2, ThumbsUp, ThumbsDown, Share2, MoreHorizontal } from "lucide-react";
 import { useState, useEffect } from "react";
 import YouTubeVideoPlayer from "@/components/YouTubeVideoPlayer";
 import axios from "@/config/CustomAxios";
 import { VideoCommentsSection } from "@/components/VideoComments/VideoCommentsSection";
+import { useGetLikeInfo } from "@/hooks/useGetLikeInfo";
+import { useToggleLike } from "@/hooks/useToggleLike";
 
 type Livestream = {
   id: string;
@@ -26,6 +28,15 @@ const PlayLivestreamPage = () => {
   const location = useLocation();
   const [livestream, setLivestream] = useState<Livestream | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDisliked, setIsDisliked] = useState(false);
+  const { data: likeInfo } = useGetLikeInfo(livestreamId || "", "livestream", !!livestreamId);
+  const toggleLikeMutation = useToggleLike();
+
+  const handleLikeClick = () => {
+    if (!livestreamId) return;
+    toggleLikeMutation.mutate({ contentId: livestreamId, contentType: "livestream" });
+    if (isDisliked) setIsDisliked(false);
+  };
 
   useEffect(() => {
     // Get livestream from location state or fetch it
@@ -113,10 +124,10 @@ const PlayLivestreamPage = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <p className="text-muted-foreground">Không tìm thấy livestream</p>
+          <p className="text-muted-foreground">Livestream not found</p>
           <Button onClick={() => navigate("/")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại trang chủ
+            Back to home
           </Button>
         </div>
       </div>
@@ -133,7 +144,7 @@ const PlayLivestreamPage = () => {
           className="mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Quay lại kênh
+          Back to channel
         </Button>
 
         {/* Video Player */}
@@ -163,7 +174,7 @@ const PlayLivestreamPage = () => {
                 {livestream.username}
               </span>
               <span className="text-xs text-muted-foreground">
-                {new Date(livestream.uploadedDate).toLocaleDateString("vi-VN")}
+                {new Date(livestream.uploadedDate).toLocaleDateString("en-US")}
               </span>
             </div>
             <Button
@@ -175,6 +186,51 @@ const PlayLivestreamPage = () => {
             </Button>
           </div>
 
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center bg-muted rounded-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`rounded-l-full hover:bg-muted-foreground/10 ${
+                  likeInfo?.isLiked ? "text-primary" : ""
+                }`}
+                onClick={handleLikeClick}
+                disabled={toggleLikeMutation.isPending}
+              >
+                <ThumbsUp className={`h-5 w-5 mr-2 ${likeInfo?.isLiked ? "fill-current" : ""}`} />
+                <span className="font-medium">{likeInfo?.likeCount ?? 0}</span>
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`rounded-r-full hover:bg-muted-foreground/10 ${
+                  isDisliked ? "text-primary" : ""
+                }`}
+                onClick={() => setIsDisliked(!isDisliked)}
+              >
+                <ThumbsDown className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full bg-muted hover:bg-muted-foreground/10"
+            >
+              <Share2 className="h-5 w-5 mr-2" />
+              Share
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-muted hover:bg-muted-foreground/10"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Description */}

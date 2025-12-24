@@ -21,7 +21,7 @@ public class Video {
     private String description="";
     private String thumbnail="";
     // second
-
+    private Integer duration = 0;
     private Set<String> server_locations = new HashSet<>();
     private Set<EVideoResolution> resolutions = new HashSet<>();
     private EVideoPrivacy privacy = EVideoPrivacy.PUBLIC;

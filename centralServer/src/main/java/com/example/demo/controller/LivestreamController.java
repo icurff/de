@@ -29,6 +29,9 @@ public class LivestreamController {
     private final LivestreamService liveStreamService;
     private final LoadBalancingService loadBalancingService;
     private final LivestreamRepository livestreamRepository;
+    private final com.example.demo.service.LikedVideoService likedVideoService;
+    private final com.example.demo.service.ActivityLogService activityLogService;
+
 
     @GetMapping
     public ResponseEntity<?> getLiveStream(@AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -115,6 +118,7 @@ public class LivestreamController {
             );
 
             String serverIp = null;
+            String serverName = null;
             String livestreamId = livestreamKey.getCurrentLivestreamId();
             if (livestreamId != null && !livestreamId.isBlank()) {
                 Optional<Livestream> optLivestream = livestreamRepository.findById(livestreamId);
@@ -131,6 +135,16 @@ public class LivestreamController {
             if (serverIp == null) {
                 Server selectedServer = loadBalancingService.getBestAvailableServer();
                 serverIp = selectedServer.getIp();
+                serverName = selectedServer.getName();
+                
+                // Log the livestream request
+                activityLogService.logActivity(
+                    "LIVESTREAM_REQUEST",
+                    serverName,
+                    serverIp,
+                    userDetails.getUsername(),
+                    "Livestream setup: " + (livestreamKey.getTitle() != null ? livestreamKey.getTitle() : "Untitled")
+                );
             }
 
             LivestreamSetupResponse response = new LivestreamSetupResponse(livestreamKey, serverIp);
@@ -186,6 +200,14 @@ public class LivestreamController {
             @RequestParam(name = "limit", defaultValue = "50") int limit
     ) {
         return ResponseEntity.ok(liveStreamService.getLivestreamsByUsername(username, limit));
+    }
+
+    @GetMapping("/public")
+    public ResponseEntity<?> getAllPublicLivestreams(
+            @RequestParam(name = "limit", defaultValue = "50") int limit,
+            @RequestParam(name = "offset", defaultValue = "0") int offset
+    ) {
+        return ResponseEntity.ok(liveStreamService.getAllPublicLivestreams(limit, offset));
     }
 
     @GetMapping("/{livestreamId}")
@@ -265,5 +287,22 @@ public class LivestreamController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to update livestream: " + e.getMessage()));
         }
+    }
+
+    @PostMapping("/{livestreamId}/like")
+    public ResponseEntity<?> toggleLike(@PathVariable String livestreamId,
+                                        @AuthenticationPrincipal UserDetailsImpl user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication required");
+        }
+        likedVideoService.toggleLike(user.getUsername(), livestreamId);
+        return ResponseEntity.ok(Map.of("liked", likedVideoService.isLiked(user.getUsername(), livestreamId)));
+    }
+
+    @GetMapping("/{livestreamId}/like-info")
+    public ResponseEntity<?> getLikeInfo(@PathVariable String livestreamId,
+                                         @AuthenticationPrincipal UserDetailsImpl user) {
+        String username = user != null ? user.getUsername() : null;
+        return ResponseEntity.ok(likedVideoService.getLikeInfo(username, livestreamId));
     }
 }

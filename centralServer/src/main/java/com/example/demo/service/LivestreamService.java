@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.EVideoPrivacy;
 import com.example.demo.model.LivestreamKey;
 import com.example.demo.model.Livestream;
 import com.example.demo.repository.LivestreamKeyRepository;
@@ -101,6 +102,12 @@ public class LivestreamService {
     public List<Livestream> getLivestreamsByUsername(String username, int limit) {
         Pageable pageable = PageRequest.of(0, Math.max(1, limit), Sort.by(Sort.Direction.DESC, "uploadedDate"));
         return livestreamRepository.findByUsernameAndDvrPathIsNotNullOrderByUploadedDateDesc(username, pageable);
+    }
+
+    public List<Livestream> getAllPublicLivestreams(int limit, int offset) {
+        int page = Math.max(0, offset) / Math.max(1, limit);
+        Pageable pageable = PageRequest.of(page, Math.max(1, limit), Sort.by(Sort.Direction.DESC, "uploadedDate"));
+        return livestreamRepository.findByPrivacyAndDvrPathIsNotNullOrderByUploadedDateDesc(EVideoPrivacy.PUBLIC, pageable);
     }
 
     public void deleteLivestream(String livestreamId, String username) {

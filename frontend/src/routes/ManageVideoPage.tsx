@@ -120,13 +120,13 @@ const ManageVideoPage = () => {
         thumbnail: thumbnailUrl,
       });
       toast({
-        title: "Đã lưu thay đổi",
-        description: "Thông tin video đã được cập nhật thành công.",
+        title: "Changes saved",
+        description: "Video information has been updated successfully.",
       });
     } catch (error: any) {
-      const message = error?.response?.data ?? error?.message ?? "Cập nhật thất bại";
+      const message = error?.response?.data ?? error?.message ?? "Update failed";
       toast({
-        title: "Cập nhật thất bại",
+        title: "Update failed",
         description: message,
         variant: "destructive",
       });
@@ -142,17 +142,17 @@ const ManageVideoPage = () => {
       setIsPublic(checked);
       await updatePrivacy({ videoId, privacy: newPrivacy });
       toast({
-        title: "Đã cập nhật quyền riêng tư",
+        title: "Privacy updated",
         description: checked 
-          ? "Video của bạn hiện được công khai với mọi người." 
-          : "Video của bạn hiện ở chế độ riêng tư.",
+          ? "Your video is now public for everyone to view." 
+          : "Your video is now private.",
       });
     } catch (error: any) {
       // Revert on error
       setIsPublic(!checked);
-      const message = error?.response?.data ?? error?.message ?? "Cập nhật thất bại";
+      const message = error?.response?.data ?? error?.message ?? "Update failed";
       toast({
-        title: "Cập nhật thất bại",
+        title: "Update failed",
         description: message,
         variant: "destructive",
       });
@@ -175,10 +175,10 @@ const ManageVideoPage = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-          <p className="text-muted-foreground">Không tìm thấy video</p>
+          <p className="text-muted-foreground">Video not found</p>
           <Button onClick={() => navigate("/")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại trang chủ
+            Back to home
           </Button>
         </div>
       </div>
@@ -200,7 +200,7 @@ const ManageVideoPage = () => {
             variant="ghost"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại
+            Back
           </Button>
           <div className="flex items-center gap-2">
             <Button
@@ -208,7 +208,7 @@ const ManageVideoPage = () => {
               variant="outline"
             >
               <Eye className="h-4 w-4 mr-2" />
-              Xem video
+              View video
             </Button>
             <Button
               onClick={handleSaveMetadata}
@@ -217,12 +217,12 @@ const ManageVideoPage = () => {
               {isUpdatingMetadata ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Đang lưu...
+                  Saving...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Lưu thay đổi
+                  Save changes
                 </>
               )}
             </Button>
@@ -299,13 +299,13 @@ const ManageVideoPage = () => {
                             const updatedVideo = await uploadThumbnail({ videoId, file });
                             setThumbnailUrl(updatedVideo.thumbnail);
                             toast({
-                              title: "Thành công",
-                              description: "Đã tải lên thumbnail mới.",
+                              title: "Success",
+                              description: "New thumbnail uploaded successfully.",
                             });
                           } catch (error: any) {
-                            const message = error?.response?.data?.error || error?.message || "Tải lên thất bại";
+                            const message = error?.response?.data?.error || error?.message || "Upload failed";
                             toast({
-                              title: "Tải lên thất bại",
+                              title: "Upload failed",
                               description: message,
                               variant: "destructive",
                             });
@@ -356,9 +356,9 @@ const ManageVideoPage = () => {
             {/* Privacy Settings */}
             <Card>
               <CardHeader>
-                <CardTitle>Quyền riêng tư</CardTitle>
+                <CardTitle>Privacy</CardTitle>
                 <CardDescription>
-                  Kiểm soát ai có thể xem video của bạn
+                  Control who can view your video
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -371,12 +371,12 @@ const ManageVideoPage = () => {
                     )}
                     <div>
                       <p className="font-medium">
-                        {isPublic ? "Công khai" : "Riêng tư"}
+                        {isPublic ? "Public" : "Private"}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {isPublic 
-                          ? "Mọi người có thể xem" 
-                          : "Chỉ bạn có thể xem"}
+                          ? "Everyone can view" 
+                          : "Only you can view"}
                       </p>
                     </div>
                   </div>
@@ -393,7 +393,7 @@ const ManageVideoPage = () => {
             {/* Video Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Thông tin video</CardTitle>
+                <CardTitle>Video Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
@@ -402,15 +402,15 @@ const ManageVideoPage = () => {
                 </div>
                 <Separator />
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ngày tải lên:</span>
-                  <span>{new Date(video.uploadedDate).toLocaleDateString("vi-VN")}</span>
+                  <span className="text-muted-foreground">Upload date:</span>
+                  <span>{new Date(video.uploadedDate).toLocaleDateString("en-US")}</span>
                 </div>
                 {video.lastModifiedDate && (
                   <>
                     <Separator />
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Chỉnh sửa lần cuối:</span>
-                      <span>{new Date(video.lastModifiedDate).toLocaleDateString("vi-VN")}</span>
+                      <span className="text-muted-foreground">Last modified:</span>
+                      <span>{new Date(video.lastModifiedDate).toLocaleDateString("en-US")}</span>
                     </div>
                   </>
                 )}
@@ -418,7 +418,7 @@ const ManageVideoPage = () => {
                   <>
                     <Separator />
                     <div>
-                      <span className="text-muted-foreground">Độ phân giải:</span>
+                      <span className="text-muted-foreground">Resolutions:</span>
                       <div className="flex flex-wrap gap-1 mt-2">
                         {video.resolutions.map((res) => (
                           <Badge key={res} variant="secondary" className="text-xs">
@@ -432,10 +432,10 @@ const ManageVideoPage = () => {
               </CardContent>
             </Card>
 
-            {/* Actions */}
+            {/* Actions
             <Card>
               <CardHeader>
-                <CardTitle>Hành động</CardTitle>
+                <CardTitle>Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button
@@ -444,12 +444,12 @@ const ManageVideoPage = () => {
                   onClick={() => {
                     // TODO: Implement analytics
                     toast({
-                      title: "Tính năng đang phát triển",
-                      description: "Thống kê video sẽ sớm được cập nhật.",
+                      title: "Feature in development",
+                      description: "Video statistics will be available soon.",
                     });
                   }}
                 >
-                  Xem thống kê
+                  View statistics
                 </Button>
                 <Button
                   variant="outline"
@@ -457,15 +457,15 @@ const ManageVideoPage = () => {
                   onClick={() => {
                     navigator.clipboard.writeText(`${window.location.origin}/video/${video.id}`);
                     toast({
-                      title: "Đã sao chép",
-                      description: "Đã sao chép liên kết video vào clipboard.",
+                      title: "Copied",
+                      description: "Video link has been copied to clipboard.",
                     });
                   }}
                 >
-                  Sao chép liên kết
+                  Copy link
                 </Button>
               </CardContent>
-            </Card>
+            </Card> */}
           </aside>
         </div>
       </div>

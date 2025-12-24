@@ -82,8 +82,12 @@ const LiveSetupPage = () => {
         rtmpUrl: response.data.rtmpUrl,
         streamKey: response.data.streamKey,
       }));
-    } catch (error) {
-      console.error("Failed to fetch stream connection info", error);
+    } catch (error: any) {
+      // Don't log 503 errors as they're expected when no servers are available
+      // This happens when no stream is set up yet
+      if (error?.response?.status !== 503) {
+        console.error("Failed to fetch stream connection info", error);
+      }
     }
   }, []);
 
@@ -360,13 +364,13 @@ const LiveSetupPage = () => {
                           });
                           setThumbnailUrl(updated.thumbnail);
                           toastHook({
-                            title: "Thành công",
-                            description: "Đã tải lên thumbnail mới.",
+                            title: "Success",
+                            description: "New thumbnail uploaded successfully.",
                           });
                         } catch (error: any) {
-                          const message = error?.response?.data?.error || error?.message || "Tải lên thất bại";
+                          const message = error?.response?.data?.error || error?.message || "Upload failed";
                           toastHook({
-                            title: "Tải lên thất bại",
+                            title: "Upload failed",
                             description: message,
                             variant: "destructive",
                           });
@@ -507,7 +511,7 @@ const LiveSetupPage = () => {
                   <Separator />
 
                   {/* Server Management */}
-                  <div>
+                  {/* <div>
                     <h4 className="text-sm font-medium mb-2">
                       Server Management
                     </h4>
@@ -523,7 +527,7 @@ const LiveSetupPage = () => {
                     <p className="text-xs text-muted-foreground mt-1">
                       Use the console to monitor streams and clients.
                     </p>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
             </div>
@@ -602,17 +606,7 @@ const LiveSetupPage = () => {
                     <li>Enter the RTMP URL and Stream Key</li>
                     <li>Click "Start Streaming"</li>
                   </ol>
-                  <div className="pt-2">
-                    <a
-                      href="https://obsproject.com/download"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-500 hover:underline flex items-center gap-1"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Download OBS Studio
-                    </a>
-                  </div>
+                 
                 </CardContent>
               </Card>
             </div>
