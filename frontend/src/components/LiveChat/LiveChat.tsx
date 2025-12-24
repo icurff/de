@@ -67,7 +67,7 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
     let wsUrl: string;
     if (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")) {
       // Absolute URL: chuyển http/https thành ws/wss
-      wsUrl = apiUrl.replace(/^http/, "ws") + "/ws/chat";
+     wsUrl = apiUrl.replace(/\/+$/, "").replace(/^https?/, "ws") + "/ws/chat";
     } else {
       // Relative path: sử dụng window.location
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
