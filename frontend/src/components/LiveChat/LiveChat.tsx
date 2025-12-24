@@ -61,7 +61,20 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
     if (!streamUsername) return;
 
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
-    const wsUrl = apiUrl.replace(/^https?/, "ws") + "/ws/chat";
+    
+    // Xử lý WebSocket URL: nếu apiUrl là relative path (bắt đầu bằng /), 
+    // sử dụng window.location để tạo WebSocket URL
+    let wsUrl: string;
+    if (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")) {
+      // Absolute URL: chuyển http/https thành ws/wss
+      wsUrl = apiUrl.replace(/^http/, "ws") + "/ws/chat";
+    } else {
+      // Relative path: sử dụng window.location
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = window.location.host;
+      wsUrl = `${protocol}//${host}${apiUrl}/ws/chat`;
+    }
+    
     const token = accessToken.getAccessToken();
 
     try {
