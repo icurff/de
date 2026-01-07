@@ -10,7 +10,15 @@ import accessToken from "@/utils/LocalStorage";
 import { format } from "date-fns";
 
 // Component riêng cho chat avatar để hiển thị đúng avatar từ message
-function ChatAvatar({ username, avatar, size = "sm" }: { username: string; avatar?: string; size?: "sm" | "md" | "lg" }) {
+function ChatAvatar({
+  username,
+  avatar,
+  size = "sm",
+}: {
+  username: string;
+  avatar?: string;
+  size?: "sm" | "md" | "lg";
+}) {
   const sizeClasses = {
     sm: "h-8 w-8",
     md: "h-10 w-10",
@@ -61,8 +69,8 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
     if (!streamUsername) return;
 
     const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
-    
-    // Xử lý WebSocket URL: nếu apiUrl là relative path (bắt đầu bằng /), 
+
+    // Xử lý WebSocket URL: nếu apiUrl là relative path (bắt đầu bằng /),
     // sử dụng window.location để tạo WebSocket URL
     let wsUrl: string;
     if (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")) {
@@ -87,11 +95,13 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
     } else {
       // Relative path: sử dụng window.location
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const host = window.location.host+":8080";
+      const host = window.location.host + ":8080";
       const cleanApiUrl = apiUrl.replace(/^\/+|\/+$/g, ""); // Remove leading and trailing slashes
-      wsUrl = `${protocol}//${host}/${cleanApiUrl ? cleanApiUrl + "/" : ""}ws/chat`;
+      wsUrl = `${protocol}//${host}/${
+        cleanApiUrl ? cleanApiUrl + "/" : ""
+      }ws/chat`;
     }
-    
+
     const token = accessToken.getAccessToken();
 
     try {
@@ -113,7 +123,7 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          
+
           // Kiểm tra nếu là error
           if (data.error) {
             console.error("WebSocket error:", data.error);
@@ -121,18 +131,27 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
           }
 
           // Kiểm tra nếu là viewer count update
-          if (data.type === "viewerCount" && data.streamUsername === streamUsername) {
+          if (
+            data.type === "viewerCount" &&
+            data.streamUsername === streamUsername
+          ) {
             setViewerCount(data.count || 0);
             return;
           }
 
           // Kiểm tra nếu là chat message
-          if (data.username && data.message && data.streamUsername === streamUsername) {
+          if (
+            data.username &&
+            data.message &&
+            data.streamUsername === streamUsername
+          ) {
             setMessages((prev) => [...prev, data]);
             // Auto scroll to bottom
             setTimeout(() => {
               if (scrollAreaRef.current) {
-                const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+                const scrollContainer = scrollAreaRef.current.querySelector(
+                  "[data-radix-scroll-area-viewport]"
+                );
                 if (scrollContainer) {
                   scrollContainer.scrollTop = scrollContainer.scrollHeight;
                 }
@@ -171,10 +190,14 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
   }, [streamUsername]);
 
   const sendMessage = () => {
-    if (!inputMessage.trim() || !isConnected || !wsRef.current || !isAuthenticated) {
+    if (
+      !inputMessage.trim() ||
+      !isConnected ||
+      !wsRef.current ||
+      !isAuthenticated
+    ) {
       return;
     }
-
     const token = accessToken.getAccessToken();
     if (!token) {
       alert("Please login to send messages");
@@ -226,15 +249,23 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
           <div className="space-y-3">
             {messages.length === 0 ? (
               <div className="text-center text-muted-foreground text-sm py-8">
-                {isConnected ? "No messages yet. Be the first to chat!" : "Connecting to chat..."}
+                {isConnected
+                  ? "No messages yet. Be the first to chat!"
+                  : "Connecting to chat..."}
               </div>
             ) : (
               messages.map((msg, idx) => (
                 <div key={idx} className="flex gap-2">
-                  <ChatAvatar username={msg.username} avatar={msg.avatar} size="sm" />
+                  <ChatAvatar
+                    username={msg.username}
+                    avatar={msg.avatar}
+                    size="sm"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-semibold text-sm">@{msg.username}</span>
+                      <span className="font-semibold text-sm">
+                        @{msg.username}
+                      </span>
                       <span className="text-xs text-muted-foreground">
                         {msg.timestamp
                           ? format(new Date(msg.timestamp), "HH:mm")
@@ -277,4 +308,3 @@ export function LiveChat({ streamUsername }: LiveChatProps) {
     </Card>
   );
 }
-

@@ -21,13 +21,7 @@ public class LoadBalancingService {
     private static final double RAM_WEIGHT = 0.40;   // 40%
     private static final double DISK_WEIGHT = 0.20;  // 20%
 
-    /**
-     * Selects the best available server based on resource utilization.
-     * The server with the lowest score (least utilized) is selected.
-     *
-     * @return The optimal server for handling the upload request
-     * @throws ResourceNotFoundException if no servers are available
-     */
+
     public Server getBestAvailableServer() {
         List<Server> availableServers = getAvailableServers();
 
@@ -67,14 +61,7 @@ public class LoadBalancingService {
         return bestServer;
     }
 
-    /**
-     * Calculates a weighted score for a server based on resource utilization.
-     * Lower scores indicate better availability.
-     * Score range: 0-100 (where 0 is completely free, 100 is fully utilized)
-     *
-     * @param server The server to evaluate
-     * @return A score representing overall resource utilization
-     */
+
     public double calculateServerScore(Server server) {
         ServerSpecification spec = server.getSpecification();
 
@@ -91,11 +78,7 @@ public class LoadBalancingService {
         return score;
     }
 
-    /**
-     * Retrieves all servers that are currently available (status = UP).
-     *
-     * @return List of available servers
-     */
+
     public List<Server> getAvailableServers() {
         return serverService.getAllServers().stream()
                 .filter(server -> server.getStatus() == EServerStatus.UP)

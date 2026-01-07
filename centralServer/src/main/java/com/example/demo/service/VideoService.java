@@ -185,4 +185,23 @@ public class VideoService {
         return pathParts[1];
     }
 
+    public Video updateVideoMetadata(String videoId, String username, String title, String description, String thumbnail) {
+        Video video = getVideoById(videoId);
+        if (!isOwner(video, username)) {
+            throw new AccessDeniedException("You do not have permission to update this video");
+        }
+
+        if (title != null) {
+            video.setTitle(title);
+        }
+        if (description != null) {
+            video.setDescription(description);
+        }
+        if (thumbnail != null) {
+            video.setThumbnail(thumbnail);
+        }
+
+        return videoRepository.save(video);
+    }
+
 }

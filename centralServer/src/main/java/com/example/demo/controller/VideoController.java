@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Video;
 import com.example.demo.payload.request.video.UpdateVideoPrivacyRequest;
 import com.example.demo.security.UserDetailsImpl;
@@ -85,6 +86,36 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
         } catch (IllegalStateException ex) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ex.getMessage());
+        }
+    }
+
+    @PatchMapping("/{videoId}")
+    public ResponseEntity<?> updateVideoMetadata(@PathVariable String videoId,
+                                                 @RequestBody Map<String, String> payload,
+                                                 @AuthenticationPrincipal UserDetailsImpl user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Authentication required"));
+        }
+        try {
+            String title = payload.get("title");
+            String description = payload.get("description");
+            String thumbnail = payload.get("thumbnail");
+
+            Video updated = videoService.updateVideoMetadata(
+                    videoId,
+                    user.getUsername(),
+                    title,
+                    description,
+                    thumbnail
+            );
+            return ResponseEntity.ok(updated);
+        } catch (AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to update video: " + e.getMessage()));
         }
     }
 

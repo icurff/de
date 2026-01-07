@@ -160,7 +160,7 @@ public class VideoService {
             log.error("Failed to generate thumbnail for video {}: {}", vidId, e.getMessage());
         }
 
-        int width = resolution[0];
+//        int width = resolution[0];
         int height = resolution[1];
         System.out.println(height);
         // Define standard resolutions

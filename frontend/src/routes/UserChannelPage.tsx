@@ -162,7 +162,7 @@ const UserChannelPage = () => {
     },
     onError: (error: any) => {
       const message =
-        error?.response?.data ?? error?.message ?? "Failed to delete video";
+        error?.response?.data?.error || error?.message || "Failed to delete video";
       toast({
         title: "Failed to delete video",
         description: message,
@@ -187,7 +187,7 @@ const UserChannelPage = () => {
       },
       onError: (error: any) => {
         const message =
-          error?.response?.data ?? error?.message ?? "Failed to delete livestream";
+          error?.response?.data?.error || error?.message || "Failed to delete livestream";
         toast({
           title: "Failed to delete livestream",
           description: message,

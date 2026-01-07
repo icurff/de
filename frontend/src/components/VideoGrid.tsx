@@ -81,7 +81,7 @@ export function VideoGrid() {
         });
       } catch (error: any) {
         const message =
-          error?.response?.data ?? error?.message ?? "Failed to delete video";
+          error?.response?.data?.error || error?.message || "Failed to delete video";
         toast({
           title: "Failed to delete video",
           description: message,

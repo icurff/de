@@ -124,7 +124,7 @@ const ManageVideoPage = () => {
         description: "Video information has been updated successfully.",
       });
     } catch (error: any) {
-      const message = error?.response?.data ?? error?.message ?? "Update failed";
+      const message = error?.response?.data?.error || error?.message || "Update failed";
       toast({
         title: "Update failed",
         description: message,
@@ -150,7 +150,7 @@ const ManageVideoPage = () => {
     } catch (error: any) {
       // Revert on error
       setIsPublic(!checked);
-      const message = error?.response?.data ?? error?.message ?? "Update failed";
+      const message = error?.response?.data?.error || error?.message || "Update failed";
       toast({
         title: "Update failed",
         description: message,
